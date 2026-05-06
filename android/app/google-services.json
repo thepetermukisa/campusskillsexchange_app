@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "965591455065",
+    "project_id": "campusskillexchange-fbf8a",
+    "storage_bucket": "campusskillexchange-fbf8a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:965591455065:android:d5f29defb1f157e6a96848",
+        "android_client_info": {
+          "package_name": "com.example.campusskillexchange_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBxtVh9O3I3n8h0jl4iGjFOlyu3TnBAfQo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
