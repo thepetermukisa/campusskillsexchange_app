@@ -10,16 +10,45 @@ class ApproveQuizzesScreen extends StatefulWidget {
 
 class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
   bool _isProcessing = false;
+  final Map<String, int> _oralScores = {};
 
-  Future<void> _handleAction(String resultId, bool approved) async {
+  Future<void> _handleAction(
+    String resultId,
+    bool approved, {
+    int? oralScore,
+    int? averageScore,
+    String? level,
+    String? userId,
+    String? skillName,
+  }) async {
     setState(() => _isProcessing = true);
     try {
       if (approved) {
-        // In a real app, we'd add the skill to the user's profile here
-        // For now, we'll just mark the result as processed/approved
+        // 1. Mark as approved with oral and combined stats
         await FirebaseFirestore.instance.collection('quiz_results').doc(resultId).update({
           'status': 'approved',
+          'oralScore': oralScore,
+          'averageScore': averageScore,
+          'level': level,
         });
+
+        // 2. Locate and update corresponding Skill listing
+        if (userId != null && skillName != null) {
+          final skillSnap = await FirebaseFirestore.instance
+              .collection('skills')
+              .where('instructorId', isEqualTo: userId)
+              .where('name', isEqualTo: skillName)
+              .limit(1)
+              .get();
+
+          if (skillSnap.docs.isNotEmpty) {
+            final skillDocId = skillSnap.docs.first.id;
+            await FirebaseFirestore.instance.collection('skills').doc(skillDocId).update({
+              'level': level,
+              'tags': FieldValue.arrayUnion([level!]),
+            });
+          }
+        }
       } else {
         await FirebaseFirestore.instance.collection('quiz_results').doc(resultId).delete();
       }
@@ -27,7 +56,7 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(approved ? 'Quiz result approved!' : 'Quiz result discarded.'),
+            content: Text(approved ? 'Quiz approved and skill level updated!' : 'Quiz result discarded.'),
             backgroundColor: approved ? Colors.green : Colors.redAccent,
           ),
         );
@@ -84,8 +113,20 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
               final data = doc.data() as Map<String, dynamic>;
               final score = data['score'] as int? ?? 0;
               final skillId = data['skillId'] ?? 'Unknown Skill';
+              final skillName = data['skillName'] ?? 'Unknown Skill';
               final userId = data['userId'] ?? 'Unknown User';
               final isPass = score >= 60;
+
+              // Get stateful oral score, default to 75
+              final oralScore = _oralScores[doc.id] ?? 75;
+              final avgScore = ((score + oralScore) / 2).round();
+
+              String level = 'Beginner';
+              if (avgScore >= 90) {
+                level = 'Expert';
+              } else if (avgScore >= 76) {
+                level = 'Intermediate';
+              }
 
               return Card(
                 color: const Color(0xFF1E1E1E),
@@ -110,7 +151,8 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                                     return Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white));
                                   },
                                 ),
-                                Text('Skill ID: $skillId', style: const TextStyle(color: Color(0xFFCCCCCC))),
+                                Text(skillName, style: const TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold)),
+                                Text('Skill ID: $skillId', style: const TextStyle(color: Colors.white54, fontSize: 11)),
                               ],
                             ),
                           ),
@@ -120,17 +162,93 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                               color: isPass ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
                               shape: BoxShape.circle,
                             ),
-                            child: Text(
-                              '$score%',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: isPass ? Colors.green : Colors.redAccent,
-                              ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  '$score%',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    color: isPass ? Colors.green : Colors.redAccent,
+                                  ),
+                                ),
+                                const Text('Written', style: TextStyle(fontSize: 8, color: Colors.white38)),
+                              ],
                             ),
                           )
                         ],
                       ),
                       const SizedBox(height: 16),
+                      const Divider(color: Colors.white12),
+                      const SizedBox(height: 8),
+                      // Oral Interview Slider
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Oral Interview Score:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Text('$oralScore%', style: const TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold, fontSize: 14)),
+                        ],
+                      ),
+                      Slider(
+                        value: oralScore.toDouble(),
+                        min: 0,
+                        max: 100,
+                        divisions: 100,
+                        activeColor: const Color(0xFFFF6B6B),
+                        inactiveColor: Colors.white12,
+                        onChanged: (val) {
+                          setState(() {
+                            _oralScores[doc.id] = val.round();
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Combined Average:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Text('$avgScore%', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Assigned Skill Level:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: level == 'Expert' 
+                                  ? Colors.green.withOpacity(0.2) 
+                                  : level == 'Intermediate'
+                                      ? Colors.amber.withOpacity(0.2)
+                                      : Colors.grey.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: level == 'Expert' 
+                                    ? Colors.green 
+                                    : level == 'Intermediate'
+                                        ? Colors.amber
+                                        : Colors.grey,
+                              ),
+                            ),
+                            child: Text(
+                              level.toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                color: level == 'Expert' 
+                                    ? Colors.green 
+                                    : level == 'Intermediate'
+                                        ? Colors.amber
+                                        : Colors.grey[300],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
@@ -146,7 +264,17 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                           const SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: (_isProcessing || !isPass) ? null : () => _handleAction(doc.id, true),
+                              onPressed: (_isProcessing || !isPass) 
+                                  ? null 
+                                  : () => _handleAction(
+                                      doc.id, 
+                                      true, 
+                                      oralScore: oralScore,
+                                      averageScore: avgScore,
+                                      level: level,
+                                      userId: userId,
+                                      skillName: skillName,
+                                    ),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4CAF50),
                               ),

@@ -116,7 +116,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     labelText: 'ACCOUNT_TYPE',
                     prefixIcon: Icon(Icons.badge_outlined, size: 20),
                   ),
-                  items: ['Student', 'Company', 'Administrator']
+                  items: ['Student', 'Employer', 'Administrator']
                       .map((role) => DropdownMenuItem(value: role, child: Text(role.toUpperCase())))
                       .toList(),
                   onChanged: (value) {

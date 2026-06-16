@@ -2,14 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../services/firebase_service.dart';
 
-class ApproveCompaniesScreen extends StatefulWidget {
-  const ApproveCompaniesScreen({super.key});
+class ApproveEmployersScreen extends StatefulWidget {
+  const ApproveEmployersScreen({super.key});
 
   @override
-  State<ApproveCompaniesScreen> createState() => _ApproveCompaniesScreenState();
+  State<ApproveEmployersScreen> createState() => _ApproveEmployersScreenState();
 }
 
-class _ApproveCompaniesScreenState extends State<ApproveCompaniesScreen> {
+class _ApproveEmployersScreenState extends State<ApproveEmployersScreen> {
   bool _isProcessing = false;
 
   Future<void> _handleAction(String userId, String name, bool approved) async {
@@ -42,14 +42,14 @@ class _ApproveCompaniesScreenState extends State<ApproveCompaniesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Approve Companies'),
+        title: const Text('Approve Employers'),
         backgroundColor: const Color(0xFF121212),
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
-            .where('role', isEqualTo: 'Company')
+            .where('role', whereIn: const ['Company', 'Employer', 'company', 'employer'])
             .where('isVerified', isEqualTo: false)
             .snapshots(),
         builder: (context, snapshot) {
@@ -57,16 +57,16 @@ class _ApproveCompaniesScreenState extends State<ApproveCompaniesScreen> {
             return const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
           }
 
-          final pendingCompanies = snapshot.data?.docs ?? [];
+          final pendingEmployers = snapshot.data?.docs ?? [];
 
-          if (pendingCompanies.isEmpty) {
+          if (pendingEmployers.isEmpty) {
             return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.business, color: Colors.white24, size: 64),
                   SizedBox(height: 16),
-                  Text('No pending companies.', style: TextStyle(color: Colors.white70, fontSize: 18)),
+                  Text('No pending employers.', style: TextStyle(color: Colors.white70, fontSize: 18)),
                 ],
               ),
             );
@@ -74,11 +74,11 @@ class _ApproveCompaniesScreenState extends State<ApproveCompaniesScreen> {
 
           return ListView.builder(
             padding: const EdgeInsets.all(16),
-            itemCount: pendingCompanies.length,
+            itemCount: pendingEmployers.length,
             itemBuilder: (context, index) {
-              final doc = pendingCompanies[index];
+              final doc = pendingEmployers[index];
               final data = doc.data() as Map<String, dynamic>;
-              final name = data['name'] ?? 'Unknown Company';
+              final name = data['name'] ?? 'Unknown Employer';
               final industry = data['industry'] ?? 'Service Provider';
               final userId = doc.id;
 

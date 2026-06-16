@@ -67,7 +67,7 @@ class JobDetailsScreen extends StatelessWidget {
             const SizedBox(height: 24),
             Row(
               children: [
-                _buildBadge(Icons.attach_money, budget),
+                _buildBadge(Icons.payments_outlined, budget),
                 const SizedBox(width: 12),
                 _buildBadge(Icons.timer_outlined, duration),
                 const SizedBox(width: 12),

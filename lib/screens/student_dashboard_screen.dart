@@ -143,77 +143,96 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
         final currentUser = User.fromMap(data, uid);
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'DASHBOARD // 01',
-                        style: Theme.of(context).textTheme.labelLarge,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Welcome, ${currentUser.name.split(' ')[0].toUpperCase()}',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                    ],
+        return Scaffold(
+          backgroundColor: AppTheme.background,
+          appBar: AppBar(
+            backgroundColor: const Color(0xFF161616),
+            elevation: 0,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'CAMPUS SKILL EXCHANGE',
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    color: AppTheme.accent,
+                    letterSpacing: 1.0,
                   ),
-                  IconButton(
-                    onPressed: () => FirebaseAuth.instance.signOut(),
-                    icon: const Icon(Icons.logout_outlined,
-                        color: AppTheme.textSecondary),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Welcome, ${currentUser.name.split(' ')[0].toUpperCase()}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
                   ),
-                ],
-              ),
-              const SizedBox(height: 32),
-              MyProfileCard(user: currentUser),
-              if (!currentUser.isVerified &&
-                  data['verificationStatus'] != 'pending') ...[
-                const SizedBox(height: 24),
-                _buildVerificationCard(currentUser.id),
+                ),
               ],
-              const SizedBox(height: 32),
-              _buildQuickActions(context),
-              const SizedBox(height: 48),
-              _buildSectionHeader('AI RECOMMENDATIONS', 'SMART_MATCH_V2'),
-              const SizedBox(height: 24),
-              _buildRecommendedSkills(uid),
-              const SizedBox(height: 48),
-              _buildSectionHeader('BROWSE CATEGORIES', 'SYSTEM_CORE'),
-              const SizedBox(height: 24),
-              FutureBuilder<List<SkillCategory>>(
-                future: _fetchCategories(),
-                builder: (context, catSnapshot) {
-                  final categories = catSnapshot.data ?? _kCategories.toList();
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 16,
-                      mainAxisSpacing: 16,
-                      childAspectRatio: 1.0,
-                    ),
-                    itemCount: categories.length,
-                    itemBuilder: (ctx, i) =>
-                        CategoryCard(category: categories[i]),
-                  );
+            ),
+            actions: [
+              IconButton(
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+                  if (context.mounted) {
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  }
                 },
+                icon: const Icon(Icons.logout_outlined, color: AppTheme.textSecondary),
               ),
-              const SizedBox(height: 40),
             ],
           ),
+          body: _buildBody(currentUser, data),
         );
       },
+    );
+  }
+
+  Widget _buildBody(User currentUser, Map<String, dynamic> data) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          MyProfileCard(user: currentUser),
+          if (!currentUser.isVerified &&
+              data['verificationStatus'] != 'pending') ...[
+            const SizedBox(height: 24),
+            _buildVerificationCard(currentUser.id),
+          ],
+          const SizedBox(height: 32),
+          _buildQuickActions(context),
+          const SizedBox(height: 48),
+          _buildSectionHeader('AI RECOMMENDATIONS', 'SMART_MATCH_V2'),
+          const SizedBox(height: 24),
+          _buildRecommendedSkills(currentUser.id),
+          const SizedBox(height: 48),
+          _buildSectionHeader('BROWSE CATEGORIES', 'SYSTEM_CORE'),
+          const SizedBox(height: 24),
+          FutureBuilder<List<SkillCategory>>(
+            future: _fetchCategories(),
+            builder: (context, catSnapshot) {
+              final categories = catSnapshot.data ?? _kCategories.toList();
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate:
+                    const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  childAspectRatio: 1.0,
+                ),
+                itemCount: categories.length,
+                itemBuilder: (ctx, i) =>
+                    CategoryCard(category: categories[i]),
+              );
+            },
+          ),
+          const SizedBox(height: 40),
+        ],
+      ),
     );
   }
 

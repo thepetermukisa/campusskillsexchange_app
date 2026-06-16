@@ -17,6 +17,7 @@ class Skill {
   final String bio;
   final List<String> tags;
   final String coverImageUrl;
+  final String level;
 
   Skill({
     required this.id,
@@ -37,6 +38,7 @@ class Skill {
     required this.bio,
     required this.tags,
     required this.coverImageUrl,
+    this.level = 'Beginner',
   });
 
   Map<String, dynamic> toMap() {
@@ -58,6 +60,7 @@ class Skill {
       'bio': bio,
       'tags': tags,
       'coverImageUrl': coverImageUrl,
+      'level': level,
     };
   }
 
@@ -81,6 +84,7 @@ class Skill {
       bio: map['bio'] ?? '',
       tags: List<String>.from(map['tags'] ?? []),
       coverImageUrl: map['coverImageUrl'] ?? '',
+      level: map['level'] ?? 'Beginner',
     );
   }
 }

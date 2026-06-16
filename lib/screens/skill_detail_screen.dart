@@ -169,9 +169,9 @@ class SkillDetailScreen extends StatelessWidget {
                     value: rating.toString(),
                   ),
                   _StatItem(
-                    icon: Icons.attach_money,
+                    icon: Icons.payments_outlined,
                     label: 'per lesson',
-                    value: pricePerLesson,
+                    value: 'UGX $pricePerLesson',
                   ),
                   _StatItem(
                     icon: Icons.rate_review,

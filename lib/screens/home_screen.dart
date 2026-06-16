@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../screens/profile_screen.dart';
 import '../screens/settings_screen.dart';
 import '../screens/student_dashboard_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});

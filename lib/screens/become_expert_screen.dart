@@ -122,7 +122,7 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
         instructorName: user.displayName ?? 'Student Expert',
         rating: 5.0,
         reviews: 0,
-        pricePerLesson: '20.0',
+        pricePerLesson: '50000',
         country: 'Uganda',
         flag: '🇺🇬',
         lessons: 0,

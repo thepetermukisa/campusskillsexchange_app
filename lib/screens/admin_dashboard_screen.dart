@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:campusskillexchange_app/theme/app_theme.dart';
-import 'package:campusskillexchange_app/screens/admin/approve_companies_screen.dart';
+import 'package:campusskillexchange_app/screens/admin/approve_employers_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_experts_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_quizzes_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/monitor_activity_screen.dart';
@@ -19,7 +19,12 @@ class AdminDashboardScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.power_settings_new, color: AppTheme.accent),
-            onPressed: () => FirebaseAuth.instance.signOut(),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (context.mounted) {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+            },
           ),
         ],
       ),
@@ -58,8 +63,8 @@ class AdminDashboardScreen extends StatelessWidget {
                 ),
                 _QuickAction(
                   icon: Icons.business_center,
-                  label: 'CORP_ADMISSION',
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (ctx) => const ApproveCompaniesScreen())),
+                  label: 'EMPLOYER_ADMISSION',
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (ctx) => const ApproveEmployersScreen())),
                 ),
                 _QuickAction(
                   icon: Icons.monitor_heart,
@@ -106,7 +111,8 @@ class AdminDashboardScreen extends StatelessWidget {
                 }).length;
                 final companies = users.where((u) {
                   final data = u.data() as Map<String, dynamic>;
-                  return data['role']?.toString().toLowerCase() == 'company';
+                  final r = data['role']?.toString().toLowerCase();
+                  return r == 'company' || r == 'employer';
                 }).length;
 
                 return Column(
@@ -123,7 +129,7 @@ class AdminDashboardScreen extends StatelessWidget {
                       children: [
                         Expanded(child: _StatCard(label: 'VERIFIED_EXP', value: activeExperts.toString().padLeft(2, '0'))),
                         const SizedBox(width: 12),
-                        Expanded(child: _StatCard(label: 'ACTIVE_CORP', value: companies.toString().padLeft(2, '0'))),
+                        Expanded(child: _StatCard(label: 'ACTIVE_EMPLOYERS', value: companies.toString().padLeft(2, '0'))),
                       ],
                     ),
                   ],

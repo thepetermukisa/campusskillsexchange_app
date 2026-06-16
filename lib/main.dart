@@ -1,6 +1,6 @@
 import 'package:campusskillexchange_app/screens/auth_screen.dart';
 import 'package:campusskillexchange_app/screens/home_screen.dart';
-import 'package:campusskillexchange_app/screens/company_dashboard_screen.dart';
+import 'package:campusskillexchange_app/screens/employer_dashboard_screen.dart';
 import 'package:campusskillexchange_app/screens/admin_dashboard_screen.dart';
 import 'package:campusskillexchange_app/services/auth_service.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -9,12 +9,12 @@ import 'package:provider/provider.dart';
 import './theme/theme_provider.dart';
 import './theme/app_theme.dart';
 import 'firebase_options.dart';
+import 'services/seeding_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await SeedingService.seedInitialData();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
@@ -42,19 +42,58 @@ class MyApp extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if (snapshot.hasData) {
-            // User is logged in, navigate based on role from Firestore
+            // User is logged in, navigate based on the ensured Firestore profile.
             return FutureBuilder<String?>(
-              future: AuthService().getUserRole(snapshot.data!.uid),
+              future: AuthService().ensureUserDocument(snapshot.data!),
               builder: (context, roleSnapshot) {
                 if (roleSnapshot.connectionState == ConnectionState.waiting) {
                   return const Scaffold(
-                    body: Center(child: CircularProgressIndicator(color: AppTheme.accent)),
+                    body: Center(
+                      child: CircularProgressIndicator(color: AppTheme.accent),
+                    ),
                   );
                 }
-                
+
+                if (roleSnapshot.hasError) {
+                  return Scaffold(
+                    body: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.error_outline,
+                              color: Colors.redAccent,
+                              size: 40,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'PROFILE_SYNC_FAILED',
+                              style: Theme.of(context).textTheme.titleLarge,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Your Firebase account exists, but the app could not create or read your profile. Check Firestore rules and network access, then try again.',
+                              style: Theme.of(context).textTheme.bodyMedium,
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton(
+                              onPressed: () => AuthService().signOut(),
+                              child: const Text('SIGN_OUT'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
+
                 final role = roleSnapshot.data;
-                if (role == 'company') {
-                  return const CompanyDashboardScreen();
+                if (role == 'company' || role == 'employer') {
+                  return const EmployerDashboardScreen();
                 } else if (role == 'administrator') {
                   return const AdminDashboardScreen();
                 } else {

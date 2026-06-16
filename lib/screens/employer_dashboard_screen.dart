@@ -7,14 +7,14 @@ import '../theme/app_theme.dart';
 import 'job_details_screen.dart';
 import 'post_request_screen.dart';
 
-class CompanyDashboardScreen extends StatefulWidget {
-  const CompanyDashboardScreen({super.key});
+class EmployerDashboardScreen extends StatefulWidget {
+  const EmployerDashboardScreen({super.key});
 
   @override
-  State<CompanyDashboardScreen> createState() => _CompanyDashboardScreenState();
+  State<EmployerDashboardScreen> createState() => _EmployerDashboardScreenState();
 }
 
-class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
+class _EmployerDashboardScreenState extends State<EmployerDashboardScreen> {
   bool _isAdding = false;
 
   void _addNewProject() {
@@ -31,11 +31,16 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
-        title: const Text('COMPANY_CONTROL_CENTER'),
+        title: const Text('EMPLOYER_CONTROL_CENTER'),
         actions: [
           IconButton(
             icon: const Icon(Icons.power_settings_new, color: AppTheme.accent),
-            onPressed: () => FirebaseAuth.instance.signOut(),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              if (context.mounted) {
+                Navigator.of(context).popUntil((route) => route.isFirst);
+              }
+            },
           ),
         ],
       ),
@@ -45,7 +50,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
               stream: FirebaseFirestore.instance.collection('users').doc(currentUser.uid).snapshots(),
               builder: (context, userSnapshot) {
                 final userData = userSnapshot.data?.data() as Map<String, dynamic>?;
-                final companyName = (userData?['name'] as String?) ?? 'COMPANY';
+                final employerName = (userData?['name'] as String?) ?? 'EMPLOYER';
 
                 return StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -79,7 +84,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      companyName.toUpperCase(),
+                                      employerName.toUpperCase(),
                                       style: Theme.of(context).textTheme.headlineMedium,
                                     ),
                                     Text(
@@ -98,7 +103,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
                               const SizedBox(width: 12),
                               Expanded(child: _StatCard(label: 'HIRED_TALENT', value: '04')),
                               const SizedBox(width: 12),
-                              Expanded(child: _StatCard(label: 'CORP_RATING', value: '4.9')),
+                              Expanded(child: _StatCard(label: 'EMPLOYER_RATING', value: '4.9')),
                             ],
                           ),
                           const SizedBox(height: 48),
@@ -149,11 +154,11 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
                                 border: Border.all(color: AppTheme.border, style: BorderStyle.solid),
                               ),
                               child: const Center(
-                                child: Text(
-                                  'NO_ACTIVE_DEPLOYMENTS_FOUND',
-                                  style: TextStyle(color: AppTheme.textSecondary, fontSize: 10, fontWeight: FontWeight.bold),
+                                  child: Text(
+                                    'NO_ACTIVE_DEPLOYMENTS_FOUND',
+                                    style: TextStyle(color: AppTheme.textSecondary, fontSize: 10, fontWeight: FontWeight.bold),
+                                  ),
                                 ),
-                              ),
                             )
                           else
                             ListView.builder(
@@ -168,7 +173,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
                                   projectName: project.title.toUpperCase(),
                                   description: project.description,
                                   postedDate: '${DateTime.now().difference(project.createdAt).inDays}D_AGO',
-                                  budget: '${project.budget.toStringAsFixed(0)}',
+                                  budget: project.budget.toStringAsFixed(0),
                                   status: 'STATUS_OPEN',
                                   onTapView: () {
                                     Navigator.push(
@@ -178,7 +183,7 @@ class _CompanyDashboardScreenState extends State<CompanyDashboardScreen> {
                                           title: project.title,
                                           description: project.description,
                                           companyName: project.requesterName,
-                                          budget: '\$${project.budget}',
+                                          budget: 'UGX ${project.budget}',
                                           duration: '1 Month',
                                           status: 'Open',
                                           requiredSkills: const ['Flutter', 'Firebase'],
@@ -334,7 +339,7 @@ class _ProjectCard extends StatelessWidget {
                 const SizedBox(height: 20),
                 Row(
                   children: [
-                    _DetailItem(label: 'BUDGET', value: '\$$budget'),
+                    _DetailItem(label: 'BUDGET', value: 'UGX $budget'),
                     const SizedBox(width: 24),
                     _DetailItem(label: 'POSTED', value: postedDate),
                   ],

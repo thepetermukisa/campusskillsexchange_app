@@ -116,8 +116,7 @@ class SettingsScreen extends StatelessWidget {
                     onTap: () async {
                       await FirebaseAuth.instance.signOut();
                       if (!context.mounted) return;
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                          '/', (Route<dynamic> route) => false);
+                      Navigator.of(context).popUntil((route) => route.isFirst);
                     },
                   ),
                 ],

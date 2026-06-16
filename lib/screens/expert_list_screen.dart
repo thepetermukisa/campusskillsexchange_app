@@ -50,7 +50,7 @@ class ExpertListScreen extends StatelessWidget {
                 margin: const EdgeInsets.only(bottom: 12),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.2),
+                    backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.25),
                     backgroundImage: skill.instructorPhotoUrl.isNotEmpty
                         ? NetworkImage(skill.instructorPhotoUrl)
                         : null,
@@ -63,13 +63,19 @@ class ExpertListScreen extends StatelessWidget {
                           )
                         : null,
                   ),
-                  title: Text(skill.instructorName,
-                      style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold)),
+                  title: Row(
+                    children: [
+                      Text(skill.instructorName,
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.bold)),
+                      const SizedBox(width: 8),
+                      _buildLevelBadge(skill.level),
+                    ],
+                  ),
                   subtitle: Text(skill.name,
                       style: const TextStyle(color: Color(0xFFCCCCCC))),
                   trailing: Text(
-                    '\$${skill.pricePerLesson}/lesson',
+                    'UGX ${skill.pricePerLesson}/lesson',
                     style: const TextStyle(
                         color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold),
                   ),
@@ -101,6 +107,31 @@ class ExpertListScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLevelBadge(String level) {
+    Color color = Colors.grey;
+    if (level == 'Expert') {
+      color = Colors.green;
+    } else if (level == 'Intermediate') {
+      color = Colors.amber;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        border: Border.all(color: color, width: 1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        level.toUpperCase(),
+        style: TextStyle(
+          color: color == Colors.grey ? Colors.grey[300] : color,
+          fontSize: 8,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

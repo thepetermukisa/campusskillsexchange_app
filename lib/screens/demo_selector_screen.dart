@@ -1,5 +1,5 @@
 import 'package:campusskillexchange_app/screens/admin_dashboard_screen.dart';
-import 'package:campusskillexchange_app/screens/company_dashboard_screen.dart';
+import 'package:campusskillexchange_app/screens/employer_dashboard_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:campusskillexchange_app/screens/home_screen.dart';
 
@@ -12,8 +12,8 @@ class DemoSelectorScreen extends StatelessWidget {
       case 'Student':
         screen = const HomeScreen();
         break;
-      case 'Company':
-        screen = const CompanyDashboardScreen();
+      case 'Employer':
+        screen = const EmployerDashboardScreen();
         break;
       case 'Administrator':
         screen = const AdminDashboardScreen();
@@ -151,7 +151,7 @@ class DemoSelectorScreen extends StatelessWidget {
                       ),
                       _buildRoleCard(
                         context,
-                        'Company',
+                        'Employer',
                         Icons.business,
                         Colors.green,
                         'Find talented students and offer internship opportunities',

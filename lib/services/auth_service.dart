@@ -14,14 +14,26 @@ class AuthService {
 
   // Sign In
   Future<UserCredential> signIn(String email, String password) async {
-    return await _auth.signInWithEmailAndPassword(
+    final userCredential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
+
+    final user = userCredential.user;
+    if (user != null) {
+      await ensureUserDocument(user);
+    }
+
+    return userCredential;
   }
 
   // Sign Up
-  Future<UserCredential> signUp(String email, String password, String name, String role) async {
+  Future<UserCredential> signUp(
+    String email,
+    String password,
+    String name,
+    String role,
+  ) async {
     // 1. Create Auth User
     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
       email: email,
@@ -30,22 +42,8 @@ class AuthService {
 
     // 2. Create User Document in Firestore
     if (userCredential.user != null) {
-      await _firestore.collection('users').doc(userCredential.user!.uid).set({
-        'id': userCredential.user!.uid,
-        'name': name,
-        'email': email,
-        'role': role.toLowerCase(),
-        'isVerified': false,
-        'subSkills': [],
-        'portfolioUrls': [],
-        'completedJobs': 0,
-        'rating': 0.0,
-        'endorsements': [],
-        'profileImageUrl': null,
-        'reviews': 0,
-        'hostingYears': 0,
-        'createdAt': FieldValue.serverTimestamp(),
-      });
+      await userCredential.user!.updateDisplayName(name);
+      await ensureUserDocument(userCredential.user!, name: name, role: role);
     }
 
     return userCredential;
@@ -59,13 +57,79 @@ class AuthService {
   // Get User Role
   Future<String?> getUserRole(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
+      DocumentSnapshot doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .get();
       if (doc.exists) {
-        return doc.get('role');
+        return doc.get('role').toString().toLowerCase();
       }
     } catch (e) {
       debugPrint('Error getting user role: $e');
     }
     return null;
+  }
+
+  Future<String> ensureUserDocument(
+    User user, {
+    String? name,
+    String? role,
+  }) async {
+    final userRef = _firestore.collection('users').doc(user.uid);
+    final snapshot = await userRef.get();
+    final normalizedRole =
+        (role == null || role.trim().isEmpty ? 'student' : role)
+            .trim()
+            .toLowerCase();
+
+    if (snapshot.exists) {
+      final data = snapshot.data() ?? {};
+      final existingRole = data['role']?.toString().toLowerCase();
+
+      final updates = <String, dynamic>{};
+      if (data['id'] == null) updates['id'] = user.uid;
+      if ((data['email'] as String?)?.isEmpty ?? true) {
+        updates['email'] = user.email ?? '';
+      }
+      if ((data['name'] as String?)?.isEmpty ?? true) {
+        updates['name'] = name ?? user.displayName ?? user.email ?? 'User';
+      }
+      if (existingRole == null || existingRole.isEmpty) {
+        updates['role'] = normalizedRole;
+      }
+
+      if (updates.isNotEmpty) {
+        await userRef.set(updates, SetOptions(merge: true));
+      }
+
+      return existingRole ?? normalizedRole;
+    }
+
+    await userRef.set(_defaultUserData(user, name: name, role: normalizedRole));
+    return normalizedRole;
+  }
+
+  Map<String, dynamic> _defaultUserData(
+    User user, {
+    String? name,
+    required String role,
+  }) {
+    return {
+      'id': user.uid,
+      'name': name ?? user.displayName ?? user.email ?? 'User',
+      'email': user.email ?? '',
+      'role': role,
+      'isVerified': false,
+      'subSkills': <String>[],
+      'portfolioUrls': <String>[],
+      'completedJobs': 0,
+      'rating': 0.0,
+      'endorsements': <String>[],
+      'profileImageUrl': null,
+      'reviews': 0,
+      'hostingYears': 0,
+      'walletBalance': 0.0,
+      'createdAt': FieldValue.serverTimestamp(),
+    };
   }
 }

@@ -78,10 +78,16 @@ class SkillListScreen extends StatelessWidget {
                             )
                           : null,
                     ),
-                    title: Text(
-                      skill.instructorName,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.white),
+                    title: Row(
+                      children: [
+                        Text(
+                          skill.instructorName,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, color: Colors.white),
+                        ),
+                        const SizedBox(width: 8),
+                        _buildLevelBadge(skill.level),
+                      ],
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +110,7 @@ class SkillListScreen extends StatelessWidget {
                       ],
                     ),
                     trailing: Text(
-                      '\$${skill.pricePerLesson}/lesson',
+                      'UGX ${skill.pricePerLesson}/lesson',
                       style: const TextStyle(
                           color: Color(0xFFFF6B6B),
                           fontWeight: FontWeight.bold),
@@ -140,6 +146,31 @@ class SkillListScreen extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildLevelBadge(String level) {
+    Color color = Colors.grey;
+    if (level == 'Expert') {
+      color = Colors.green;
+    } else if (level == 'Intermediate') {
+      color = Colors.amber;
+    }
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.15),
+        border: Border.all(color: color, width: 1),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        level.toUpperCase(),
+        style: TextStyle(
+          color: color == Colors.grey ? Colors.grey[300] : color,
+          fontSize: 8,
+          fontWeight: FontWeight.bold,
+        ),
       ),
     );
   }

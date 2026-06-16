@@ -35,14 +35,15 @@ class AuthWrapper extends StatelessWidget {
               if (userSnapshot.hasData && userSnapshot.data!.exists) {
                 final userData =
                     userSnapshot.data!.data() as Map<String, dynamic>;
-                final role = userData['role'];
+                final role = userData['role']?.toString().toLowerCase();
 
                 switch (role) {
-                  case 'Student':
+                  case 'student':
                     return const HomeScreen();
-                  case 'Company':
+                  case 'company':
+                  case 'employer':
                     return const HomeScreen();
-                  case 'Administrator':
+                  case 'administrator':
                     return const HomeScreen();
                   default:
                     return const WelcomeScreen();

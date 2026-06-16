@@ -169,8 +169,8 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: 'Budget (\$)',
-                hint: '0.00',
+                label: 'Budget (UGX)',
+                hint: '50000',
                 keyboardType: TextInputType.number,
                 onSaved: (v) => _budget = double.tryParse(v!) ?? 0.0,
                 validator: (v) {
