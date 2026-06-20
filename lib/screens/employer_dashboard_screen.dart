@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/service_request.dart';
+import '../models/user.dart';
+import '../models/role.dart';
 import '../services/firebase_service.dart';
 import '../theme/app_theme.dart';
 import 'job_details_screen.dart';
@@ -51,6 +53,7 @@ class _EmployerDashboardScreenState extends State<EmployerDashboardScreen> {
               builder: (context, userSnapshot) {
                 final userData = userSnapshot.data?.data() as Map<String, dynamic>?;
                 final employerName = (userData?['name'] as String?) ?? 'EMPLOYER';
+                final userRole = RoleHelper.fromString(userData?['role']);
 
                 return StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
@@ -83,9 +86,30 @@ class _EmployerDashboardScreenState extends State<EmployerDashboardScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      employerName.toUpperCase(),
-                                      style: Theme.of(context).textTheme.headlineMedium,
+                                    Row(
+                                      children: [
+                                        Text(
+                                          employerName.toUpperCase(),
+                                          style: Theme.of(context).textTheme.headlineMedium,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                          decoration: BoxDecoration(
+                                            color: AppTheme.accent.withOpacity(0.2),
+                                            border: Border.all(color: AppTheme.accent),
+                                          ),
+                                          child: Text(
+                                            userRole.name.toUpperCase(),
+                                            style: const TextStyle(
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.w900,
+                                              color: AppTheme.accent,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Text(
                                       'ID: ${currentUser.uid.substring(0, 8).toUpperCase()}',

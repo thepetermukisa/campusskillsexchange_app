@@ -1,8 +1,10 @@
+import 'role.dart';
+
 class User {
   final String id;
   final String name;
   final String email;
-  final String role; // 'student', 'company', 'administrator'
+  final Role role; // typed Role enum
   final bool isVerified;
   final List<String> subSkills;
   final List<String> portfolioUrls;
@@ -40,7 +42,7 @@ class User {
       'id': id,
       'name': name,
       'email': email,
-      'role': role.toLowerCase(),
+      'role': RoleHelper.toStringValue(role),
       'isVerified': isVerified,
       'subSkills': subSkills,
       'portfolioUrls': portfolioUrls,
@@ -60,7 +62,7 @@ class User {
       id: documentId,
       name: map['name'] ?? '',
       email: map['email'] ?? '',
-      role: map['role'] ?? 'student',
+      role: RoleHelper.fromString(map['role']),
       isVerified: map['isVerified'] ?? false,
       subSkills: List<String>.from(map['subSkills'] ?? []),
       portfolioUrls: List<String>.from(map['portfolioUrls'] ?? []),

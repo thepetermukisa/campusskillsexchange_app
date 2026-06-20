@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import 'package:image_picker/image_picker.dart';
 import '../models/user.dart';
+import '../models/role.dart';
 import '../models/skill.dart';
 import '../models/skill_category.dart';
 import '../models/service_request.dart';
@@ -161,13 +162,34 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                   ),
                 ),
                 const SizedBox(height: 2),
-                Text(
-                  'Welcome, ${currentUser.name.split(' ')[0].toUpperCase()}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      'Welcome, ${currentUser.name.split(' ')[0].toUpperCase()}',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: AppTheme.accent.withOpacity(0.2),
+                        border: Border.all(color: AppTheme.accent),
+                      ),
+                      child: Text(
+                        currentUser.role.name.toUpperCase(),
+                        style: const TextStyle(
+                          fontSize: 8,
+                          fontWeight: FontWeight.w900,
+                          color: AppTheme.accent,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -202,7 +224,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             _buildVerificationCard(currentUser.id),
           ],
           const SizedBox(height: 32),
-          _buildQuickActions(context),
+          _buildQuickActions(context, currentUser),
           const SizedBox(height: 48),
           _buildSectionHeader('AI RECOMMENDATIONS', 'SMART_MATCH_V2'),
           const SizedBox(height: 24),
@@ -309,9 +331,26 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
-    return Row(
-      children: [
+  Widget _buildQuickActions(BuildContext context, User currentUser) {
+    final buttons = <Widget>[];
+    
+    // All roles can see MESSAGES
+    buttons.add(
+      Expanded(
+        child: _QuickActionButton(
+          icon: Icons.message_outlined,
+          label: 'MESSAGES',
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (ctx) => const ChatListScreen()),
+          ),
+        ),
+      ),
+    );
+    
+    // Students and Employers can OFFER SKILL
+    if (currentUser.role == Role.student || currentUser.role == Role.employer) {
+      buttons.insertAll(0, [
         Expanded(
           child: _QuickActionButton(
             icon: Icons.add_box_outlined,
@@ -323,6 +362,13 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           ),
         ),
         const SizedBox(width: 12),
+      ]);
+    }
+    
+    // Students can REQUEST
+    if (currentUser.role == Role.student) {
+      buttons.add(const SizedBox(width: 12));
+      buttons.add(
         Expanded(
           child: _QuickActionButton(
             icon: Icons.send_outlined,
@@ -333,18 +379,11 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickActionButton(
-            icon: Icons.message_outlined,
-            label: 'MESSAGES',
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (ctx) => const ChatListScreen()),
-            ),
-          ),
-        ),
-      ],
+      );
+    }
+    
+    return Row(
+      children: buttons,
     );
   }
 

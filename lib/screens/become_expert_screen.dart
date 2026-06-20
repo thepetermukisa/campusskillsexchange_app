@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../models/skill.dart';
+import '../models/role.dart';
 import '../services/firebase_service.dart';
+import '../theme/app_theme.dart';
 import './skill_test_screen.dart';
 import './test_result_screen.dart';
 
@@ -44,6 +47,34 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
   };
 
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkUserRole();
+  }
+
+  Future<void> _checkUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final userData = doc.data() ?? {};
+      final userRole = RoleHelper.fromString(userData['role']);
+      
+      // Only students and employers can become experts
+      if (userRole != Role.student && userRole != Role.employer) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('UNAUTHORIZED: Only students and employers can offer skills.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      }
+    }
+  }
 
   Future<void> _pickAndUploadImage(bool isPortfolio) async {
     final XFile? image = await _picker.pickImage(source: ImageSource.gallery);

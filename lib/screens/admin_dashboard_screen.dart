@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:campusskillexchange_app/theme/app_theme.dart';
+import 'package:campusskillexchange_app/models/role.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_employers_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_experts_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_quizzes_screen.dart';
@@ -33,9 +34,30 @@ class AdminDashboardScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              _getGreeting().toUpperCase(),
-              style: Theme.of(context).textTheme.displaySmall,
+            Row(
+              children: [
+                Text(
+                  _getGreeting().toUpperCase(),
+                  style: Theme.of(context).textTheme.displaySmall,
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.accent.withOpacity(0.2),
+                    border: Border.all(color: AppTheme.accent),
+                  ),
+                  child: const Text(
+                    'ADMINISTRATOR',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w900,
+                      color: AppTheme.accent,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 48),
 

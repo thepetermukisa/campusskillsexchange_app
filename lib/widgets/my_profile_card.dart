@@ -65,7 +65,7 @@ class MyProfileCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       color: user.isVerified ? AppTheme.accent : AppTheme.border,
                       child: Text(
-                        user.role.toUpperCase(),
+                        user.role.name.toUpperCase(),
                         style: TextStyle(
                           fontSize: 10,
                           fontWeight: FontWeight.w900,

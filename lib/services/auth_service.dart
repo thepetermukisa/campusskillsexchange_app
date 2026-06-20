@@ -2,6 +2,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 
+import '../models/role.dart';
+
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -55,14 +57,12 @@ class AuthService {
   }
 
   // Get User Role
-  Future<String?> getUserRole(String uid) async {
+  Future<Role?> getUserRole(String uid) async {
     try {
-      DocumentSnapshot doc = await _firestore
-          .collection('users')
-          .doc(uid)
-          .get();
+      DocumentSnapshot doc = await _firestore.collection('users').doc(uid).get();
       if (doc.exists) {
-        return doc.get('role').toString().toLowerCase();
+        final roleRaw = doc.get('role')?.toString();
+        return RoleHelper.fromString(roleRaw);
       }
     } catch (e) {
       debugPrint('Error getting user role: $e');
@@ -70,21 +70,21 @@ class AuthService {
     return null;
   }
 
-  Future<String> ensureUserDocument(
+  Future<Role> ensureUserDocument(
     User user, {
     String? name,
     String? role,
   }) async {
     final userRef = _firestore.collection('users').doc(user.uid);
     final snapshot = await userRef.get();
-    final normalizedRole =
-        (role == null || role.trim().isEmpty ? 'student' : role)
-            .trim()
-            .toLowerCase();
+    final normalizedRole = RoleHelper.fromString(role);
 
     if (snapshot.exists) {
       final data = snapshot.data() ?? {};
-      final existingRole = data['role']?.toString().toLowerCase();
+      final existingRoleRaw = data['role']?.toString();
+      final existingRole = (existingRoleRaw == null || existingRoleRaw.toString().trim().isEmpty)
+          ? null
+          : RoleHelper.fromString(existingRoleRaw);
 
       final updates = <String, dynamic>{};
       if (data['id'] == null) updates['id'] = user.uid;
@@ -94,8 +94,8 @@ class AuthService {
       if ((data['name'] as String?)?.isEmpty ?? true) {
         updates['name'] = name ?? user.displayName ?? user.email ?? 'User';
       }
-      if (existingRole == null || existingRole.isEmpty) {
-        updates['role'] = normalizedRole;
+      if (existingRole == null) {
+        updates['role'] = RoleHelper.toStringValue(normalizedRole);
       }
 
       if (updates.isNotEmpty) {
@@ -105,7 +105,7 @@ class AuthService {
       return existingRole ?? normalizedRole;
     }
 
-    await userRef.set(_defaultUserData(user, name: name, role: normalizedRole));
+    await userRef.set(_defaultUserData(user, name: name, role: RoleHelper.toStringValue(normalizedRole)));
     return normalizedRole;
   }
 

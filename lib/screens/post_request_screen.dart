@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/service_request.dart';
+import '../models/user.dart';
+import '../models/role.dart';
 import '../services/firebase_service.dart';
+import '../theme/app_theme.dart';
 
 class PostRequestScreen extends StatefulWidget {
   final ServiceRequest? requestToEdit;
@@ -25,12 +28,35 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
   @override
   void initState() {
     super.initState();
+    _checkUserRole();
     if (widget.requestToEdit != null) {
       _title = widget.requestToEdit!.title;
       _description = widget.requestToEdit!.description;
       _category = widget.requestToEdit!.category;
       _budget = widget.requestToEdit!.budget;
       _deadline = widget.requestToEdit!.deadline;
+    }
+  }
+
+  Future<void> _checkUserRole() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final doc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      final userData = doc.data() ?? {};
+      final userRole = RoleHelper.fromString(userData['role']);
+      
+      // Students and Employers can post requests
+      if (userRole != Role.student && userRole != Role.employer) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('UNAUTHORIZED: Only students and employers can post requests.'),
+              backgroundColor: Colors.redAccent,
+            ),
+          );
+          Navigator.pop(context);
+        }
+      }
     }
   }
 
