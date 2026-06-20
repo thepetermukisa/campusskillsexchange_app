@@ -3,6 +3,7 @@ import 'package:campusskillexchange_app/screens/home_screen.dart';
 import 'package:campusskillexchange_app/screens/employer_dashboard_screen.dart';
 import 'package:campusskillexchange_app/screens/admin_dashboard_screen.dart';
 import 'package:campusskillexchange_app/services/auth_service.dart';
+import 'package:campusskillexchange_app/models/role.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -14,7 +15,9 @@ import 'services/seeding_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await SeedingService.seedInitialData();
+  // Initial seeding should not run from the unauthenticated client.
+  // Use a secure admin script or emulator-based seed process instead.
+  // await SeedingService.seedInitialData();
   runApp(
     ChangeNotifierProvider(
       create: (context) => ThemeProvider(),
@@ -43,9 +46,9 @@ class MyApp extends StatelessWidget {
           }
           if (snapshot.hasData) {
             // User is logged in, navigate based on the ensured Firestore profile.
-            return FutureBuilder<String?>(
+            return FutureBuilder<Role>(
               future: AuthService().ensureUserDocument(snapshot.data!),
-              builder: (context, roleSnapshot) {
+                builder: (context, roleSnapshot) {
                 if (roleSnapshot.connectionState == ConnectionState.waiting) {
                   return const Scaffold(
                     body: Center(
@@ -91,10 +94,10 @@ class MyApp extends StatelessWidget {
                   );
                 }
 
-                final role = roleSnapshot.data;
-                if (role == 'company' || role == 'employer') {
+                final role = roleSnapshot.data as Role?;
+                if (role == Role.employer) {
                   return const EmployerDashboardScreen();
-                } else if (role == 'administrator') {
+                } else if (role == Role.administrator) {
                   return const AdminDashboardScreen();
                 } else {
                   return const HomeScreen(); // Default to student
