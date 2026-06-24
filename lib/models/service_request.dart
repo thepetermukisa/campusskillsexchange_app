@@ -51,9 +51,13 @@ class ServiceRequest {
       requesterId: map['requesterId'] ?? '',
       requesterName: map['requesterName'] ?? '',
       budget: (map['budget'] ?? 0.0).toDouble(),
-      deadline: (map['deadline'] as Timestamp).toDate(),
+      deadline: map['deadline'] != null
+          ? (map['deadline'] as Timestamp).toDate()
+          : DateTime.now().add(const Duration(days: 7)),
       status: map['status'] ?? 'open',
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: map['createdAt'] != null
+          ? (map['createdAt'] as Timestamp).toDate()
+          : DateTime.now(),
       matchedExpertId: map['matchedExpertId'],
     );
   }

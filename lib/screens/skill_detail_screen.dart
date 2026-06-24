@@ -1,6 +1,5 @@
 // screens/skill_detail_screen.dart
 import 'package:flutter/material.dart';
-import 'skill_test_screen.dart';
 import 'chat_screen.dart';
 import 'submit_review_screen.dart';
 
@@ -47,17 +46,17 @@ class SkillDetailScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(skillName),
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.share),
+            icon: Icon(Icons.share),
             onPressed: () {
               // Implement share functionality
             },
           ),
           IconButton(
-            icon: const Icon(Icons.favorite_border),
+            icon: Icon(Icons.favorite_border),
             onPressed: () {
               // Implement favorite toggle
             },
@@ -83,12 +82,12 @@ class SkillDetailScreen extends StatelessWidget {
                     bottom: 16,
                     right: 16,
                     child: Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.5),
+                        color: Colors.black.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.play_arrow,
                         color: Colors.white,
                         size: 40,
@@ -101,7 +100,7 @@ class SkillDetailScreen extends StatelessWidget {
 
             // Instructor Profile Section
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Row(
                 children: [
                   CircleAvatar(
@@ -115,7 +114,7 @@ class SkillDetailScreen extends StatelessWidget {
                             instructorName.isNotEmpty
                                 ? instructorName[0].toUpperCase()
                                 : '?',
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Color(0xFFFF6B6B),
                               fontWeight: FontWeight.bold,
                               fontSize: 20,
@@ -123,14 +122,14 @@ class SkillDetailScreen extends StatelessWidget {
                           )
                         : null,
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           instructorName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
@@ -138,10 +137,10 @@ class SkillDetailScreen extends StatelessWidget {
                         Row(
                           children: [
                             Text('From $instructorCountry'),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text(
                               instructorFlag,
-                              style: const TextStyle(fontSize: 16),
+                              style: TextStyle(fontSize: 16),
                             ),
                           ],
                         ),
@@ -154,7 +153,7 @@ class SkillDetailScreen extends StatelessWidget {
 
             // Stats Row
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -192,29 +191,29 @@ class SkillDetailScreen extends StatelessWidget {
               ),
             ),
 
-            const Divider(height: 40, thickness: 1, color: Color(0xFF333333)),
+            Divider(height: 40, thickness: 1, color: Color(0xFF333333)),
 
             // Bio / Description Card
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Card(
-                color: const Color(0xFF1E1E1E),
+                color: Theme.of(context).colorScheme.surface,
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      Text(
                         'Perfect for speaking practice',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         bio,
-                        style: const TextStyle(color: Color(0xFFCCCCCC)),
+                        style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7)),
                       ),
                     ],
                   ),
@@ -224,7 +223,7 @@ class SkillDetailScreen extends StatelessWidget {
 
             // Tags / Badges
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
@@ -234,7 +233,7 @@ class SkillDetailScreen extends StatelessWidget {
                     backgroundColor: tag.contains('Professional')
                         ? const Color(0xFF6C63FF)
                         : const Color(0xFFFF6B6B),
-                    labelStyle: const TextStyle(color: Colors.white),
+                    labelStyle: TextStyle(color: Colors.white),
                   );
                 }).toList(),
               ),
@@ -242,52 +241,11 @@ class SkillDetailScreen extends StatelessWidget {
 
             // Action Buttons
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // ── AI Quiz button ─────────────────────────────────────
-                  ElevatedButton.icon(
-                    onPressed: () async {
-                      final result = await Navigator.push<double>(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => SkillTestScreen(
-                            skillId: skillId,
-                            skillName: skillName,
-                            category: category,
-                          ),
-                        ),
-                      );
-                      if (result != null && context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              'Quiz complete! Score: ${result.toStringAsFixed(1)}%',
-                            ),
-                            backgroundColor: result >= 60
-                                ? Colors.green.shade700
-                                : Colors.red.shade700,
-                          ),
-                        );
-                      }
-                    },
-                    icon: const Icon(Icons.auto_awesome, size: 20),
-                    label: const Text(
-                      'Take AI Quiz',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6B6B),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 4,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
+
                   // ── Message Instructor button ──────────────────────────
                   OutlinedButton.icon(
                     onPressed: () {
@@ -301,21 +259,21 @@ class SkillDetailScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.chat_bubble_outline, size: 20),
-                    label: const Text(
+                    icon: Icon(Icons.chat_bubble_outline, size: 20),
+                    label: Text(
                       'Message Instructor',
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Colors.white,
                       side: const BorderSide(color: Colors.white24, width: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   // ── Buy lesson button ──────────────────────────────────
                   OutlinedButton(
                     onPressed: () {
@@ -328,17 +286,17 @@ class SkillDetailScreen extends StatelessWidget {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: const Color(0xFFFF6B6B),
                       side: const BorderSide(color: Color(0xFFFF6B6B), width: 1.5),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
+                    child: Text(
                       'Buy trial lesson',
                       style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   // ── Leave Review button ────────────────────────────────
                   TextButton.icon(
                     onPressed: () {
@@ -352,8 +310,8 @@ class SkillDetailScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.rate_review_outlined, color: Color(0xFFFF6B6B)),
-                    label: const Text(
+                    icon: Icon(Icons.rate_review_outlined, color: Color(0xFFFF6B6B)),
+                    label: Text(
                       'Leave a Review',
                       style: TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold),
                     ),
@@ -362,7 +320,7 @@ class SkillDetailScreen extends StatelessWidget {
               ),
             ),
 
-            const SizedBox(height: 40), // Bottom padding
+            SizedBox(height: 40), // Bottom padding
           ],
         ),
       ),
@@ -387,15 +345,15 @@ class _StatItem extends StatelessWidget {
     return Column(
       children: [
         Icon(icon, color: const Color(0xFFFF6B6B), size: 24),
-        const SizedBox(height: 4),
+        SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 2),
+        SizedBox(height: 2),
         Text(
           label,
-          style: const TextStyle(fontSize: 12, color: Color(0xFFCCCCCC)),
+          style: TextStyle(fontSize: 12, color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7)),
         ),
       ],
     );

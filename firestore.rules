@@ -63,5 +63,13 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
     }
+    
+    // Applications
+    match /applications/{applicationId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isAdmin() || (isSignedIn() && (resource.data.applicantId == request.auth.uid || resource.data.employerId == request.auth.uid));
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.applicantId == request.auth.uid);
+    }
   }
 }

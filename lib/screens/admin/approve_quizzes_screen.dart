@@ -76,8 +76,8 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Approve Quizzes'),
-        backgroundColor: const Color(0xFF121212),
+        title: Text('Approve Quizzes'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -87,26 +87,26 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
+            return Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
           }
 
           final quizResults = snapshot.data?.docs ?? [];
 
           if (quizResults.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.quiz, color: Colors.white24, size: 64),
                   SizedBox(height: 16),
-                  Text('No quiz results require approval.', style: TextStyle(color: Colors.white70, fontSize: 18)),
+                  Text('No quiz results require approval.', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 18)),
                 ],
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             itemCount: quizResults.length,
             itemBuilder: (context, index) {
               final doc = quizResults[index];
@@ -129,11 +129,11 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
               }
 
               return Card(
-                color: const Color(0xFF1E1E1E),
-                margin: const EdgeInsets.only(bottom: 16),
+                color: Theme.of(context).colorScheme.surface,
+                margin: EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -148,18 +148,18 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                                   future: FirebaseFirestore.instance.collection('users').doc(userId).get(),
                                   builder: (context, userSnap) {
                                     final name = (userSnap.data?.data() as Map<String, dynamic>?)?['name'] ?? 'User';
-                                    return Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white));
+                                    return Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white));
                                   },
                                 ),
-                                Text(skillName, style: const TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold)),
-                                Text('Skill ID: $skillId', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                                Text(skillName, style: TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold)),
+                                Text('Skill ID: $skillId', style: TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54), fontSize: 11)),
                               ],
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: isPass ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                              color: isPass ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: Column(
@@ -173,21 +173,21 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                                     color: isPass ? Colors.green : Colors.redAccent,
                                   ),
                                 ),
-                                const Text('Written', style: TextStyle(fontSize: 8, color: Colors.white38)),
+                                Text('Written', style: TextStyle(fontSize: 8, color: Colors.white38)),
                               ],
                             ),
                           )
                         ],
                       ),
-                      const SizedBox(height: 16),
-                      const Divider(color: Colors.white12),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 16),
+                      Divider(color: Colors.white12),
+                      SizedBox(height: 8),
                       // Oral Interview Slider
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Oral Interview Score:', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                          Text('$oralScore%', style: const TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text('Oral Interview Score:', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 13)),
+                          Text('$oralScore%', style: TextStyle(color: Color(0xFFFF6B6B), fontWeight: FontWeight.bold, fontSize: 14)),
                         ],
                       ),
                       Slider(
@@ -203,27 +203,27 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                           });
                         },
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Combined Average:', style: TextStyle(color: Colors.white70, fontSize: 13)),
-                          Text('$avgScore%', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text('Combined Average:', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 13)),
+                          Text('$avgScore%', style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 14)),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Text('Assigned Skill Level:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                          Text('Assigned Skill Level:', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 13)),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
                               color: level == 'Expert' 
-                                  ? Colors.green.withOpacity(0.2) 
+                                  ? Colors.green.withValues(alpha: 0.2) 
                                   : level == 'Intermediate'
-                                      ? Colors.amber.withOpacity(0.2)
-                                      : Colors.grey.withOpacity(0.2),
+                                      ? Colors.amber.withValues(alpha: 0.2)
+                                      : Colors.grey.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: level == 'Expert' 
@@ -248,7 +248,7 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      SizedBox(height: 20),
                       Row(
                         children: [
                           Expanded(
@@ -258,10 +258,10 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                                 foregroundColor: Colors.redAccent,
                                 side: const BorderSide(color: Colors.redAccent),
                               ),
-                              child: const Text('Discard'),
+                              child: Text('Discard'),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
                               onPressed: (_isProcessing || !isPass) 
@@ -278,7 +278,7 @@ class _ApproveQuizzesScreenState extends State<ApproveQuizzesScreen> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4CAF50),
                               ),
-                              child: const Text('Approve', style: TextStyle(color: Colors.white)),
+                              child: Text('Approve', style: TextStyle(color: Colors.white)),
                             ),
                           ),
                         ],

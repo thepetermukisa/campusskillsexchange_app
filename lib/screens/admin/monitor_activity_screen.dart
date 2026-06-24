@@ -106,15 +106,15 @@ class MonitorActivityScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Monitor Activity'),
-        backgroundColor: const Color(0xFF121212),
+        title: Text('Monitor Activity'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
       ),
       body: FutureBuilder<List<_ActivityItem>>(
         future: _fetchActivity(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: Color(0xFFFF6B6B)),
             );
           }
@@ -122,36 +122,36 @@ class MonitorActivityScreen extends StatelessWidget {
           final items = snapshot.data ?? [];
 
           if (items.isEmpty) {
-            return const Center(
+            return Center(
               child: Text(
                 'No recent activity yet.',
-                style: TextStyle(color: Colors.white54),
+                style: TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54)),
               ),
             );
           }
 
           return ListView.separated(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             itemCount: items.length,
             separatorBuilder: (_, __) =>
-                const Divider(color: Color(0xFF333333)),
+                Divider(color: Color(0xFF333333)),
             itemBuilder: (context, index) {
               final act = items[index];
               return ListTile(
                 contentPadding:
-                    const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                    EdgeInsets.symmetric(vertical: 8, horizontal: 8),
                 leading: CircleAvatar(
                   backgroundColor: act.color.withValues(alpha: 0.2),
                   child: Icon(act.icon, color: act.color),
                 ),
                 title: Text(act.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                         fontWeight: FontWeight.bold, color: Colors.white)),
                 subtitle: Text(act.desc,
-                    style: const TextStyle(color: Color(0xFFCCCCCC))),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7))),
                 trailing: Text(
                   _timeAgo(act.timestamp),
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: Color(0xFF9E9E9E), fontSize: 12),
                 ),
               );

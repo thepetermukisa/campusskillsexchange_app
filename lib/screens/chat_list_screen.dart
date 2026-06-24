@@ -14,25 +14,25 @@ class ChatListScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Messages'),
+        title: Text('My Messages'),
       ),
       body: StreamBuilder<List<Map<String, dynamic>>>(
         stream: chatService.getUserChats(currentUserId),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
+            return Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
           }
 
           final chats = snapshot.data ?? [];
 
           if (chats.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.chat_bubble_outline, size: 64, color: Colors.white24),
                   SizedBox(height: 16),
-                  Text('No conversations yet.', style: TextStyle(color: Colors.white54)),
+                  Text('No conversations yet.', style: TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54))),
                 ],
               ),
             );
@@ -48,24 +48,24 @@ class ChatListScreen extends StatelessWidget {
               return FutureBuilder<DocumentSnapshot>(
                 future: FirebaseFirestore.instance.collection('users').doc(otherUserId).get(),
                 builder: (context, userSnapshot) {
-                  if (!userSnapshot.hasData) return const SizedBox.shrink();
+                  if (!userSnapshot.hasData) return SizedBox.shrink();
                   
                   final userData = userSnapshot.data!.data() as Map<String, dynamic>? ?? {};
                   final String otherUserName = userData['name'] ?? 'User';
 
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.1),
-                      child: Text(otherUserName[0].toUpperCase(), style: const TextStyle(color: Color(0xFFFF6B6B))),
+                      backgroundColor: const Color(0xFFFF6B6B).withValues(alpha: 0.1),
+                      child: Text(otherUserName[0].toUpperCase(), style: TextStyle(color: Color(0xFFFF6B6B))),
                     ),
-                    title: Text(otherUserName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                    title: Text(otherUserName, style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     subtitle: Text(
                       chat['lastMessage'] ?? '...',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(color: Color(0xFF999999)),
+                      style: TextStyle(color: Color(0xFF999999)),
                     ),
-                    trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white24),
+                    trailing: Icon(Icons.arrow_forward_ios, size: 14, color: Colors.white24),
                     onTap: () {
                       Navigator.push(
                         context,

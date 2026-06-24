@@ -12,11 +12,11 @@ class SkillTestScreen extends StatefulWidget {
   final String category;
 
   const SkillTestScreen({
-    Key? key,
+    super.key,
     required this.skillId,
     required this.skillName,
     required this.category,
-  }) : super(key: key);
+  });
 
   @override
   _SkillTestScreenState createState() => _SkillTestScreenState();
@@ -44,7 +44,7 @@ class _SkillTestScreenState extends State<SkillTestScreen>
 
   // ── Theme colours ──────────────────────────────────────────────────────────
   static const _primary = Color(0xFFFF6B6B);
-  static const _surface = Color(0xFF1E1E1E);
+  Color get _surface => Theme.of(context).colorScheme.surface;
 
   // ──────────────────────────────────────────────────────────────────────────
   @override
@@ -182,16 +182,16 @@ class _SkillTestScreenState extends State<SkillTestScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF121212),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(widget.skillName,
-            style: const TextStyle(fontWeight: FontWeight.bold)),
+            style: TextStyle(fontWeight: FontWeight.bold)),
         backgroundColor: const Color(0xFF1A1A1A),
         foregroundColor: Colors.white,
         actions: [
           if (!_isLoading && _quiz != null)
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: EdgeInsets.only(right: 8),
               child: Center(child: _AiBadge()),
             ),
         ],
@@ -208,7 +208,7 @@ class _SkillTestScreenState extends State<SkillTestScreen>
   Widget _buildLoadingState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -225,28 +225,28 @@ class _SkillTestScreenState extends State<SkillTestScreen>
                         colors: [_primary, Color(0xFFFF9A8B)]),
                     boxShadow: [
                       BoxShadow(
-                          color: _primary.withOpacity(0.5),
+                          color: _primary.withValues(alpha: 0.5),
                           blurRadius: 24,
                           spreadRadius: 4),
                     ],
                   ),
-                  child: const Icon(Icons.auto_awesome,
+                  child: Icon(Icons.auto_awesome,
                       color: Colors.white, size: 36),
                 ),
               ),
             ),
-            const SizedBox(height: 28),
-            const Text('Generating your quiz with AI…',
+            SizedBox(height: 28),
+            Text('Generating your quiz with AI…',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               'Gemini is crafting fresh questions\njust for ${widget.skillName}',
               style:
-                  TextStyle(color: Colors.white.withOpacity(0.5), fontSize: 14),
+                  TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
               textAlign: TextAlign.center,
             ),
           ],
@@ -259,32 +259,32 @@ class _SkillTestScreenState extends State<SkillTestScreen>
   Widget _buildErrorState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.wifi_off_rounded,
-                color: Colors.white.withOpacity(0.4), size: 56),
-            const SizedBox(height: 20),
-            const Text('Could not generate quiz',
+                color: Colors.white.withValues(alpha: 0.4), size: 56),
+            SizedBox(height: 20),
+            Text('Could not generate quiz',
                 style: TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold)),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(_errorMessage!,
                 style: TextStyle(
-                    color: Colors.white.withOpacity(0.5), fontSize: 13),
+                    color: Colors.white.withValues(alpha: 0.5), fontSize: 13),
                 textAlign: TextAlign.center),
-            const SizedBox(height: 28),
+            SizedBox(height: 28),
             ElevatedButton.icon(
               onPressed: _loadQuiz,
-              icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              icon: Icon(Icons.refresh),
+              label: Text('Try Again'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                     horizontal: 32, vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30)),
@@ -306,8 +306,8 @@ class _SkillTestScreenState extends State<SkillTestScreen>
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-          decoration: const BoxDecoration(color: Color(0xFF1A1A1A)),
+          padding: EdgeInsets.fromLTRB(20, 16, 20, 20),
+          decoration: BoxDecoration(color: Color(0xFF1A1A1A)),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -315,18 +315,18 @@ class _SkillTestScreenState extends State<SkillTestScreen>
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Question ${_currentQuestionIndex + 1} of $total',
-                      style: const TextStyle(
-                          color: Colors.white70, fontSize: 13)),
+                      style: TextStyle(
+                          color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 13)),
                   Text(
                     'Score: $_score / ${_currentQuestionIndex + (_answerRevealed ? 1 : 0)}',
-                    style: const TextStyle(
+                    style: TextStyle(
                         color: _primary,
                         fontWeight: FontWeight.bold,
                         fontSize: 13),
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               ClipRRect(
                 borderRadius: BorderRadius.circular(6),
                 child: LinearProgressIndicator(
@@ -349,27 +349,27 @@ class _SkillTestScreenState extends State<SkillTestScreen>
             child: FadeTransition(
               opacity: _cardSlide,
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(20),
                       decoration: BoxDecoration(
                         color: _surface,
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: Colors.white.withOpacity(0.08)),
+                            color: Colors.white.withValues(alpha: 0.08)),
                       ),
                       child: Text(question.text,
-                          style: const TextStyle(
+                          style: TextStyle(
                               color: Colors.white,
                               fontSize: 18,
                               fontWeight: FontWeight.w600,
                               height: 1.45),
                           textAlign: TextAlign.center),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
                     ...question.options.asMap().entries.map((entry) {
                       final idx = entry.key;
                       final label = entry.value;
@@ -381,8 +381,8 @@ class _SkillTestScreenState extends State<SkillTestScreen>
                         revealed: _answerRevealed,
                         onTap: () => _selectOption(idx),
                       );
-                    }).toList(),
-                    const SizedBox(height: 40),
+                    }),
+                    SizedBox(height: 40),
                   ],
                 ),
               ),
@@ -424,22 +424,22 @@ class _OptionTile extends StatelessWidget {
 
     if (!revealed) {
       borderColor = Colors.white12;
-      bgColor = const Color(0xFF1E1E1E);
+      bgColor = Theme.of(context).colorScheme.surface;
       textColor = Colors.white;
       trailingIcon = null;
     } else if (index == correctIndex) {
       borderColor = correct;
-      bgColor = correct.withOpacity(0.15);
+      bgColor = correct.withValues(alpha: 0.15);
       textColor = correct;
       trailingIcon = Icons.check_circle_rounded;
     } else if (index == selectedIndex) {
       borderColor = wrong;
-      bgColor = wrong.withOpacity(0.15);
+      bgColor = wrong.withValues(alpha: 0.15);
       textColor = wrong;
       trailingIcon = Icons.cancel_rounded;
     } else {
       borderColor = Colors.white12;
-      bgColor = const Color(0xFF1E1E1E);
+      bgColor = Theme.of(context).colorScheme.surface;
       textColor = Colors.white38;
       trailingIcon = null;
     }
@@ -447,14 +447,14 @@ class _OptionTile extends StatelessWidget {
     final letters = ['A', 'B', 'C', 'D'];
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: EdgeInsets.only(bottom: 12),
       child: GestureDetector(
         onTap: revealed ? null : onTap,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
           padding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: bgColor,
             borderRadius: BorderRadius.circular(12),
@@ -468,10 +468,10 @@ class _OptionTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: revealed && index == correctIndex
-                      ? correct.withOpacity(0.25)
+                      ? correct.withValues(alpha: 0.25)
                       : revealed && index == selectedIndex
-                          ? wrong.withOpacity(0.25)
-                          : Colors.white.withOpacity(0.08),
+                          ? wrong.withValues(alpha: 0.25)
+                          : Colors.white.withValues(alpha: 0.08),
                 ),
                 child: Center(
                   child: Text(letters[index],
@@ -481,7 +481,7 @@ class _OptionTile extends StatelessWidget {
                           fontSize: 14)),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Text(label,
                     style: TextStyle(
@@ -508,13 +508,13 @@ class _AiBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
             colors: [Color(0xFFFF6B6B), Color(0xFFFF9A8B)]),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: const Row(
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(Icons.auto_awesome, size: 13, color: Colors.white),

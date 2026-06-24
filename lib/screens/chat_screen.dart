@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/chat_message.dart';
 import '../services/chat_service.dart';
+import 'profile_screen.dart';
 
 class ChatScreen extends StatefulWidget {
   final String receiverId;
@@ -32,11 +34,57 @@ class _ChatScreenState extends State<ChatScreen> {
     _messageController.clear();
   }
 
+  String _formatTime(DateTime time) {
+    final hour = time.hour == 0 ? 12 : (time.hour > 12 ? time.hour - 12 : time.hour);
+    final minute = time.minute.toString().padLeft(2, '0');
+    final ampm = time.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $ampm';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.receiverName),
+        titleSpacing: 0,
+        title: GestureDetector(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ProfileScreen(userId: widget.receiverId),
+              ),
+            );
+          },
+          child: Row(
+            children: [
+              FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('users').doc(widget.receiverId).get(),
+                builder: (context, snapshot) {
+                  String? profileImageUrl;
+                  if (snapshot.hasData && snapshot.data!.exists) {
+                    final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+                    profileImageUrl = data['profileImageUrl'];
+                  }
+                  return CircleAvatar(
+                    radius: 18,
+                    backgroundColor: const Color(0xFFFF6B6B),
+                    backgroundImage: (profileImageUrl != null && profileImageUrl.isNotEmpty)
+                        ? NetworkImage(profileImageUrl)
+                        : null,
+                    child: (profileImageUrl == null || profileImageUrl.isEmpty)
+                        ? Text(
+                            widget.receiverName.isNotEmpty ? widget.receiverName[0].toUpperCase() : '?',
+                            style: TextStyle(color: Colors.white, fontSize: 16),
+                          )
+                        : null,
+                  );
+                },
+              ),
+              SizedBox(width: 12),
+              Text(widget.receiverName),
+            ],
+          ),
+        ),
       ),
       body: Column(
         children: [
@@ -45,18 +93,18 @@ class _ChatScreenState extends State<ChatScreen> {
               stream: _chatService.getMessages(_currentUserId, widget.receiverId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
+                  return Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
                 }
                 
                 final messages = snapshot.data ?? [];
                 
                 if (messages.isEmpty) {
-                  return const Center(child: Text('No messages yet. Say hi!'));
+                  return Center(child: Text('No messages yet. Say hi!'));
                 }
 
                 return ListView.builder(
                   reverse: true,
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
@@ -64,22 +112,34 @@ class _ChatScreenState extends State<ChatScreen> {
                     
                     return Align(
                       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: isMe ? const Color(0xFFFF6B6B) : const Color(0xFF1E1E1E),
-                          borderRadius: BorderRadius.only(
-                            topLeft: const Radius.circular(16),
-                            topRight: const Radius.circular(16),
-                            bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
-                            bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                      child: Column(
+                        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            margin: EdgeInsets.only(top: 4, bottom: 2),
+                            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                            decoration: BoxDecoration(
+                              color: isMe ? const Color(0xFFFF6B6B) : Theme.of(context).colorScheme.surface,
+                              borderRadius: BorderRadius.only(
+                                topLeft: const Radius.circular(16),
+                                topRight: const Radius.circular(16),
+                                bottomLeft: isMe ? const Radius.circular(16) : Radius.zero,
+                                bottomRight: isMe ? Radius.zero : const Radius.circular(16),
+                              ),
+                            ),
+                            child: Text(
+                              message.text,
+                              style: TextStyle(color: isMe ? Colors.white : Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7)),
+                            ),
                           ),
-                        ),
-                        child: Text(
-                          message.text,
-                          style: TextStyle(color: isMe ? Colors.white : const Color(0xFFCCCCCC)),
-                        ),
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 8.0, left: 4, right: 4),
+                            child: Text(
+                              _formatTime(message.timestamp),
+                              style: TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54), fontSize: 10),
+                            ),
+                          ),
+                        ],
                       ),
                     );
                   },
@@ -95,9 +155,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: const BoxDecoration(
-        color: Color(0xFF121212),
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
         border: Border(top: BorderSide(color: Colors.white10)),
       ),
       child: Row(
@@ -105,23 +165,23 @@ class _ChatScreenState extends State<ChatScreen> {
           Expanded(
             child: TextField(
               controller: _messageController,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Type a message...',
-                hintStyle: const TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: Colors.white24),
                 filled: true,
-                fillColor: const Color(0xFF1E1E1E),
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                contentPadding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               ),
               onSubmitted: (_) => _sendMessage(),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           CircleAvatar(
             backgroundColor: const Color(0xFFFF6B6B),
             child: IconButton(
-              icon: const Icon(Icons.send, color: Colors.white),
+              icon: Icon(Icons.send, color: Colors.white),
               onPressed: _sendMessage,
             ),
           ),

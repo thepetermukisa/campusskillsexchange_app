@@ -13,7 +13,7 @@ class WelcomeScreen extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Theme.of(context).primaryColor.withOpacity(0.8),
+              Theme.of(context).primaryColor.withValues(alpha: 0.8),
               Theme.of(context).scaffoldBackgroundColor,
             ],
             begin: Alignment.topCenter,
@@ -23,7 +23,7 @@ class WelcomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
+            Text(
               'Campus Skill Exchange',
               style: TextStyle(
                 fontSize: 32,
@@ -31,12 +31,12 @@ class WelcomeScreen extends StatelessWidget {
                 color: Colors.white,
               ),
             ),
-            const SizedBox(height: 20),
-            const Text(
+            SizedBox(height: 20),
+            Text(
               'Learn, Teach, and Grow',
-              style: TextStyle(fontSize: 18, color: Colors.white70),
+              style: TextStyle(fontSize: 18, color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7)),
             ),
-            const SizedBox(height: 100),
+            SizedBox(height: 100),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(
@@ -45,15 +45,15 @@ class WelcomeScreen extends StatelessWidget {
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Theme.of(context).primaryColor,
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 80,
                   vertical: 15,
                 ),
-                textStyle: const TextStyle(fontSize: 18),
+                textStyle: TextStyle(fontSize: 18),
               ),
-              child: const Text('Login'),
+              child: Text('Login'),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
             OutlinedButton(
               onPressed: () {
                 Navigator.of(context).push(
@@ -62,11 +62,11 @@ class WelcomeScreen extends StatelessWidget {
               },
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: Theme.of(context).primaryColor),
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 72,
                   vertical: 15,
                 ),
-                textStyle: const TextStyle(fontSize: 18),
+                textStyle: TextStyle(fontSize: 18),
               ),
               child: Text(
                 'Sign Up',

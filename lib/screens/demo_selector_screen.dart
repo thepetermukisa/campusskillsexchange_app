@@ -40,48 +40,48 @@ class DemoSelectorScreen extends StatelessWidget {
         onTap: () => _navigateToRole(context, role),
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(24),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [color.withOpacity(0.7), color.withOpacity(0.4)],
+              colors: [color.withValues(alpha: 0.7), color.withValues(alpha: 0.4)],
             ),
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon, size: 80, color: Colors.white),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Text(
                 role,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
               Text(
                 description,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.white.withOpacity(0.9),
+                  color: Colors.white.withValues(alpha: 0.9),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
               Container(
-                padding: const EdgeInsets.symmetric(
+                padding: EdgeInsets.symmetric(
                   horizontal: 20,
                   vertical: 10,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.3),
+                  color: Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
+                child: Text(
                   'Tap to Enter',
                   style: TextStyle(
                     color: Colors.white,
@@ -105,18 +105,18 @@ class DemoSelectorScreen extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              const Color(0xFF121212),
-              const Color(0xFF1E1E1E),
-              Theme.of(context).primaryColor.withOpacity(0.3),
+              Theme.of(context).scaffoldBackgroundColor,
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).primaryColor.withValues(alpha: 0.3),
             ],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              const SizedBox(height: 40),
+              SizedBox(height: 40),
               // Header
-              const Text(
+              Text(
                 'Campus Skill Exchange',
                 style: TextStyle(
                   fontSize: 32,
@@ -124,19 +124,19 @@ class DemoSelectorScreen extends StatelessWidget {
                   color: Colors.white,
                 ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10),
               Text(
                 'Demo Mode - Select Your Role',
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.7),
+                  color: Colors.white.withValues(alpha: 0.7),
                 ),
               ),
-              const SizedBox(height: 50),
+              SizedBox(height: 50),
               // Role Cards
               Expanded(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: EdgeInsets.symmetric(horizontal: 20),
                   child: GridView.count(
                     crossAxisCount: 1,
                     mainAxisSpacing: 20,
@@ -167,7 +167,7 @@ class DemoSelectorScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              SizedBox(height: 20),
             ],
           ),
         ),

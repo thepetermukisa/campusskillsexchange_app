@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../models/user.dart' as model;
-import '../../services/firebase_service.dart';
 
 class ApproveExpertsScreen extends StatefulWidget {
   const ApproveExpertsScreen({super.key});
@@ -13,14 +12,43 @@ class ApproveExpertsScreen extends StatefulWidget {
 class _ApproveExpertsScreenState extends State<ApproveExpertsScreen> {
   bool _isProcessing = false;
 
-  Future<void> _handleAction(String userId, bool approved) async {
+  Future<void> _handleAction(String userId, String userName, bool approved) async {
     setState(() => _isProcessing = true);
     try {
-      await FirebaseService().updateUser(userId, {
-        'isVerified': approved,
-        // If rejected, we might want to clear the studentIdUrl or keep it for record
-        if (!approved) 'studentIdUrl': null, 
-      });
+      if (approved) {
+        // Find the user's pending skill listing to get the skill name
+        final skillSnap = await FirebaseFirestore.instance
+            .collection('skills')
+            .where('instructorId', isEqualTo: userId)
+            .limit(1)
+            .get();
+
+        List<String> skillNames = [];
+        if (skillSnap.docs.isNotEmpty) {
+          final skillData = skillSnap.docs.first.data();
+          final skillName = skillData['name'] as String? ?? '';
+          if (skillName.isNotEmpty) skillNames = [skillName];
+        }
+
+        await FirebaseFirestore.instance.collection('users').doc(userId).update({
+          'isVerified': true,
+          'verificationStatus': 'verified',
+          if (skillNames.isNotEmpty) 'subSkills': FieldValue.arrayUnion(skillNames),
+        });
+
+        // Log activity
+        await FirebaseFirestore.instance.collection('activity').add({
+          'type': 'skill',
+          'message': '$userName was verified as an expert',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await FirebaseFirestore.instance.collection('users').doc(userId).update({
+          'isVerified': false,
+          'studentIdUrl': null,
+          'verificationStatus': 'rejected',
+        });
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -53,10 +81,10 @@ class _ApproveExpertsScreenState extends State<ApproveExpertsScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Image.network(url, fit: BoxFit.contain),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text('Close'),
+              child: Text('Close'),
             ),
           ],
         ),
@@ -68,8 +96,8 @@ class _ApproveExpertsScreenState extends State<ApproveExpertsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('ID Verification'),
-        backgroundColor: const Color(0xFF121212),
+        title: Text('ID Verification'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -80,84 +108,84 @@ class _ApproveExpertsScreenState extends State<ApproveExpertsScreen> {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
+            return Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
           }
 
           final pendingUsers = snapshot.data?.docs ?? [];
 
           if (pendingUsers.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.check_circle_outline, color: Colors.green, size: 64),
                   SizedBox(height: 16),
-                  Text('All caught up!', style: TextStyle(color: Colors.white70, fontSize: 18)),
-                  Text('No pending verifications.', style: TextStyle(color: Colors.white54)),
+                  Text('All caught up!', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 18)),
+                  Text('No pending verifications.', style: TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54))),
                 ],
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             itemCount: pendingUsers.length,
             itemBuilder: (context, index) {
               final doc = pendingUsers[index];
               final user = model.User.fromMap(doc.data() as Map<String, dynamic>, doc.id);
 
               return Card(
-                color: const Color(0xFF1E1E1E),
-                margin: const EdgeInsets.only(bottom: 16),
+                color: Theme.of(context).colorScheme.surface,
+                margin: EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.2),
-                            child: Text(user.name[0], style: const TextStyle(color: Color(0xFFFF6B6B))),
+                            backgroundColor: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
+                            child: Text(user.name[0], style: TextStyle(color: Color(0xFFFF6B6B))),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(user.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
-                                Text(user.email, style: const TextStyle(color: Color(0xFFCCCCCC), fontSize: 12)),
+                                Text(user.name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                                Text(user.email, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 12)),
                               ],
                             ),
                           ),
                           TextButton(
                             onPressed: () => _showIdPreview(user.studentIdUrl!),
-                            child: const Text('View ID', style: TextStyle(color: Color(0xFFFF6B6B))),
+                            child: Text('View ID', style: TextStyle(color: Color(0xFFFF6B6B))),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton(
-                              onPressed: _isProcessing ? null : () => _handleAction(user.id, false),
+                              onPressed: _isProcessing ? null : () => _handleAction(user.id, user.name, false),
                               style: OutlinedButton.styleFrom(
                                 foregroundColor: Colors.redAccent,
                                 side: const BorderSide(color: Colors.redAccent),
                               ),
-                              child: const Text('Reject'),
+                              child: Text('Reject'),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
-                              onPressed: _isProcessing ? null : () => _handleAction(user.id, true),
+                              onPressed: _isProcessing ? null : () => _handleAction(user.id, user.name, true),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4CAF50),
                               ),
-                              child: const Text('Approve', style: TextStyle(color: Colors.white)),
+                              child: Text('Approve', style: TextStyle(color: Colors.white)),
                             ),
                           ),
                         ],

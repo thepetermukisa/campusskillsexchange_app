@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import '../models/skill.dart';
 import '../models/service_request.dart';
@@ -7,10 +8,7 @@ import '../models/service_request.dart';
 class AIMatchmakingService {
   // Loaded from --dart-define=GEMINI_API_KEY=<your_key> at build/run time.
   // Never hardcode a real key here. See README for setup instructions.
-  static const String _apiKey = String.fromEnvironment(
-    'GEMINI_API_KEY',
-    defaultValue: '',
-  );
+  static String get _apiKey => dotenv.env['GEMINI_API_KEY'] ?? '';
 
   static Future<List<String>> getMatches({
     required ServiceRequest request,

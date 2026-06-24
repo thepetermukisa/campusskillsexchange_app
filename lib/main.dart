@@ -10,10 +10,12 @@ import 'package:provider/provider.dart';
 import './theme/theme_provider.dart';
 import './theme/app_theme.dart';
 import 'firebase_options.dart';
-import 'services/seeding_service.dart';
+
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   // Initial seeding should not run from the unauthenticated client.
   // Use a secure admin script or emulator-based seed process instead.
@@ -35,7 +37,8 @@ class MyApp extends StatelessWidget {
 
     return MaterialApp(
       title: 'Campus Skill Exchange',
-      theme: AppTheme.theme,
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
       themeMode: themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
       debugShowCheckedModeBanner: false,
       home: StreamBuilder(
@@ -94,7 +97,7 @@ class MyApp extends StatelessWidget {
                   );
                 }
 
-                final role = roleSnapshot.data as Role?;
+                final role = roleSnapshot.data;
                 if (role == Role.employer) {
                   return const EmployerDashboardScreen();
                 } else if (role == Role.administrator) {

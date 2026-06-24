@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/service_request.dart';
-import '../models/user.dart';
 import '../models/role.dart';
 import '../services/firebase_service.dart';
-import '../theme/app_theme.dart';
 
 class PostRequestScreen extends StatefulWidget {
   final ServiceRequest? requestToEdit;
@@ -79,10 +77,10 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: Color(0xFFFF6B6B),
+            colorScheme: ColorScheme.dark(
+              primary: const Color(0xFFFF6B6B),
               onPrimary: Colors.white,
-              surface: Color(0xFF1E1E1E),
+              surface: Theme.of(context).colorScheme.surface,
             ),
           ),
           child: child!,
@@ -152,32 +150,32 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Post Service Request'),
+        title: Text('Post Service Request'),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Text(
+              Text(
                 'What do you need help with?',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
               ),
-              const SizedBox(height: 8),
-              const Text(
+              SizedBox(height: 8),
+              Text(
                 'Describe your request and set a budget.',
-                style: TextStyle(color: Color(0xFFCCCCCC)),
+                style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7)),
               ),
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
               _buildTextField(
                 label: 'Title',
                 hint: 'e.g., Help with Flutter Animation',
                 onSaved: (v) => _title = v!,
                 validator: (v) => v!.isEmpty ? 'Please enter a title' : null,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               _buildTextField(
                 label: 'Description',
                 hint: 'Provide details about the task...',
@@ -185,15 +183,15 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                 onSaved: (v) => _description = v!,
                 validator: (v) => v!.isEmpty ? 'Please enter a description' : null,
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _category,
-                dropdownColor: const Color(0xFF1E1E1E),
+                initialValue: _category,
+                dropdownColor: Theme.of(context).colorScheme.surface,
                 decoration: _inputDecoration('Category'),
                 items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
                 onChanged: (v) => setState(() => _category = v!),
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               _buildTextField(
                 label: 'Budget (UGX)',
                 hint: '50000',
@@ -206,7 +204,7 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               InkWell(
                 onTap: _selectDeadline,
                 child: InputDecorator(
@@ -216,26 +214,26 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
                     children: [
                       Text(
                         '${_deadline.year}-${_deadline.month}-${_deadline.day}',
-                        style: const TextStyle(color: Colors.white),
+                        style: TextStyle(color: Colors.white),
                       ),
-                      const Icon(Icons.calendar_today, color: Color(0xFFFF6B6B)),
+                      Icon(Icons.calendar_today, color: Color(0xFFFF6B6B)),
                     ],
                   ),
                 ),
               ),
-              const SizedBox(height: 48),
+              SizedBox(height: 48),
               if (_isLoading)
-                const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
+                Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
               else
                 ElevatedButton(
                   onPressed: _submit,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF6B6B),
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                  child: const Text('Post Request', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text('Post Request', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
             ],
           ),
@@ -253,8 +251,8 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
     required FormFieldValidator<String> validator,
   }) {
     return TextFormField(
-      style: const TextStyle(color: Colors.white),
-      decoration: _inputDecoration(label).copyWith(hintText: hint, hintStyle: const TextStyle(color: Colors.white24)),
+      style: TextStyle(color: Colors.white),
+      decoration: _inputDecoration(label).copyWith(hintText: hint, hintStyle: TextStyle(color: Colors.white24)),
       maxLines: maxLines,
       initialValue: label.contains('Budget') ? _budget.toString() : (label == 'Title' ? _title : (label == 'Description' ? _description : null)),
       onSaved: onSaved,
@@ -265,9 +263,9 @@ class _PostRequestScreenState extends State<PostRequestScreen> {
   InputDecoration _inputDecoration(String label) {
     return InputDecoration(
       labelText: label,
-      labelStyle: const TextStyle(color: Color(0xFFFF6B6B)),
+      labelStyle: TextStyle(color: Color(0xFFFF6B6B)),
       filled: true,
-      fillColor: const Color(0xFF1E1E1E),
+      fillColor: Theme.of(context).colorScheme.surface,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
       focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: Color(0xFFFF6B6B))),

@@ -2,322 +2,373 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:campusskillexchange_app/theme/app_theme.dart';
-import 'package:campusskillexchange_app/models/role.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_employers_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_experts_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/approve_quizzes_screen.dart';
 import 'package:campusskillexchange_app/screens/admin/monitor_activity_screen.dart';
+import 'package:campusskillexchange_app/screens/admin/manage_users_screen.dart';
+import 'package:campusskillexchange_app/screens/admin/manage_jobs_screen.dart';
+import 'package:campusskillexchange_app/screens/settings_screen.dart';
 
 class AdminDashboardScreen extends StatelessWidget {
   const AdminDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: const Text('ADMIN_SYS_OVERRIDE'),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Admin Dashboard', style: theme.textTheme.bodySmall),
+            Text(_greeting(), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700)),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.power_settings_new, color: AppTheme.accent),
+            icon: Icon(Icons.logout_rounded),
+            tooltip: 'Sign out',
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
-              if (context.mounted) {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              }
+              if (context.mounted) Navigator.of(context).popUntil((r) => r.isFirst);
             },
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      drawer: Drawer(
+        backgroundColor: theme.colorScheme.surface,
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            Row(
-              children: [
-                Text(
-                  _getGreeting().toUpperCase(),
-                  style: Theme.of(context).textTheme.displaySmall,
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.accent.withOpacity(0.2),
-                    border: Border.all(color: AppTheme.accent),
-                  ),
-                  child: const Text(
-                    'ADMINISTRATOR',
-                    style: TextStyle(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w900,
-                      color: AppTheme.accent,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-                ),
-              ],
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: AppTheme.accent.withValues(alpha: 0.1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Icon(Icons.admin_panel_settings_rounded, color: AppTheme.accent, size: 48),
+                  SizedBox(height: 12),
+                  Text('Admin Control Center', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
-            const SizedBox(height: 48),
-
-            // Quick Actions
-            Text(
-              'OPERATIONAL_CONTROLS',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                    fontSize: 10,
-                  ),
+            _DrawerItem(
+              icon: Icons.dashboard_rounded,
+              title: 'Dashboard Home',
+              color: Colors.white,
+              onTap: () => Navigator.pop(context),
             ),
-            const SizedBox(height: 16),
-            GridView.count(
-              crossAxisCount: 2,
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 2.2,
-              children: [
-                _QuickAction(
-                  icon: Icons.verified_user,
-                  label: 'VERIFY_EXPERTS',
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (ctx) => const ApproveExpertsScreen())),
-                ),
-                _QuickAction(
-                  icon: Icons.business_center,
-                  label: 'EMPLOYER_ADMISSION',
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (ctx) => const ApproveEmployersScreen())),
-                ),
-                _QuickAction(
-                  icon: Icons.monitor_heart,
-                  label: 'SYSTEM_MONITOR',
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (ctx) => const MonitorActivityScreen())),
-                ),
-                _QuickAction(
-                  icon: Icons.terminal,
-                  label: 'QUIZ_VALIDATOR',
-                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (ctx) => const ApproveQuizzesScreen())),
-                ),
-              ],
-            ),
-            const SizedBox(height: 48),
-
-            // Stats Cards
-            Text(
-              'SYSTEM_TELEMETRY',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                    fontSize: 10,
-                  ),
-            ),
-            const SizedBox(height: 16),
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.redAccent)),
-                    child: Text('TELEMETRY_OFFLINE: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent, fontSize: 10)),
-                  );
-                }
-                final users = snapshot.data?.docs ?? [];
-                final totalUsers = users.length;
-                final pendingVerifications = users.where((u) {
-                  final data = u.data() as Map<String, dynamic>;
-                  return data['studentIdUrl'] != null && data['isVerified'] == false;
-                }).length;
-                final activeExperts = users.where((u) {
-                  final data = u.data() as Map<String, dynamic>;
-                  return data['isVerified'] == true;
-                }).length;
-                final companies = users.where((u) {
-                  final data = u.data() as Map<String, dynamic>;
-                  final r = data['role']?.toString().toLowerCase();
-                  return r == 'company' || r == 'employer';
-                }).length;
-
-                return Column(
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(child: _StatCard(label: 'TOTAL_USERS', value: totalUsers.toString().padLeft(3, '0'))),
-                        const SizedBox(width: 12),
-                        Expanded(child: _StatCard(label: 'PENDING_SIG', value: pendingVerifications.toString().padLeft(2, '0'))),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(child: _StatCard(label: 'VERIFIED_EXP', value: activeExperts.toString().padLeft(2, '0'))),
-                        const SizedBox(width: 12),
-                        Expanded(child: _StatCard(label: 'ACTIVE_EMPLOYERS', value: companies.toString().padLeft(2, '0'))),
-                      ],
-                    ),
-                  ],
-                );
+            Divider(color: Color(0xFF333333)),
+            _DrawerItem(
+              icon: Icons.people_alt_rounded,
+              title: 'Manage Users',
+              color: const Color(0xFFB066FF),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageUsersScreen()));
               },
             ),
-            const SizedBox(height: 48),
-
-            // Recent Activity Log
-            Text(
-              'EVENT_LOG_V4',
-              style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: AppTheme.textSecondary,
-                    fontSize: 10,
-                  ),
+            _DrawerItem(
+              icon: Icons.work_rounded,
+              title: 'Manage Jobs',
+              color: const Color(0xFFFF6B6B),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageJobsScreen()));
+              },
             ),
-            const SizedBox(height: 16),
-            StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('activity')
-                  .orderBy('timestamp', descending: true)
-                  .limit(10)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(border: Border.all(color: Colors.redAccent)),
-                    child: Text('LOG_STREAM_INTERRUPTED: ${snapshot.error}', style: const TextStyle(color: Colors.redAccent, fontSize: 10)),
-                  );
-                }
-                final activities = snapshot.data?.docs ?? [];
-                if (activities.isEmpty) {
-                  return Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(32),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: AppTheme.border),
-                    ),
-                    child: Center(
-                      child: Text('LOG_BUFFER_EMPTY', style: TextStyle(color: AppTheme.textSecondary, fontSize: 10, fontWeight: FontWeight.bold)),
-                    ),
-                  );
-                }
+            Divider(color: Color(0xFF333333)),
+            _DrawerItem(
+              icon: Icons.verified_user_rounded,
+              title: 'Verify Experts',
+              color: const Color(0xFF5CC1B5),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ApproveExpertsScreen()));
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.business_center_rounded,
+              title: 'Approve Employers',
+              color: const Color(0xFF6B8FFF),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ApproveEmployersScreen()));
+              },
+            ),
+            _DrawerItem(
+              icon: Icons.quiz_rounded,
+              title: 'Review Quizzes',
+              color: const Color(0xFFFFB347),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ApproveQuizzesScreen()));
+              },
+            ),
+            const Divider(color: Color(0xFF333333)),
+            _DrawerItem(
+              icon: Icons.monitor_heart_rounded,
+              title: 'Monitor Activity',
+              color: const Color(0xFFFF8C69),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const MonitorActivityScreen()));
+              },
+            ),
+            const Divider(color: Color(0xFF333333)),
+            _DrawerItem(
+              icon: Icons.settings_rounded,
+              title: 'Settings',
+              color: const Color(0xFF9E9E9E),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+              },
+            ),
+          ],
+        ),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('users').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Could not load stats: ${snapshot.error}', style: TextStyle(color: theme.colorScheme.error)));
+          }
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator(color: AppTheme.accent));
+          }
 
-                return Container(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppTheme.border),
+          final users = snapshot.data?.docs ?? [];
+          final totalUsers = users.length;
+          final pendingExperts = users.where((u) {
+            final data = u.data() as Map<String, dynamic>;
+            return data['studentIdUrl'] != null && data['isVerified'] == false;
+          }).length;
+          final activeExperts = users.where((u) {
+            final data = u.data() as Map<String, dynamic>;
+            return data['isVerified'] == true;
+          }).length;
+          final companies = users.where((u) {
+            final data = u.data() as Map<String, dynamic>;
+            final r = data['role']?.toString().toLowerCase();
+            return r == 'company' || r == 'employer';
+          });
+          final totalCompanies = companies.length;
+          final pendingEmployers = companies.where((u) {
+            final data = u.data() as Map<String, dynamic>;
+            return data['isVerified'] == false;
+          }).length;
+
+          return SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // -- Actionable Alerts --------------------------------------------
+                if (pendingExperts > 0 || pendingEmployers > 0) ...[
+                  Text('Action Required', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                  SizedBox(height: 12),
+                  if (pendingExperts > 0)
+                    _AlertBanner(
+                      icon: Icons.verified_user_rounded,
+                      title: '$pendingExperts Experts Awaiting Verification',
+                      color: const Color(0xFF5CC1B5),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApproveExpertsScreen())),
+                    ),
+                  if (pendingExperts > 0 && pendingEmployers > 0) SizedBox(height: 8),
+                  if (pendingEmployers > 0)
+                    _AlertBanner(
+                      icon: Icons.business_center_rounded,
+                      title: '$pendingEmployers Employers Awaiting Approval',
+                      color: const Color(0xFF6B8FFF),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ApproveEmployersScreen())),
+                    ),
+                  SizedBox(height: 28),
+                ],
+
+                // -- Platform Stats ------------------------------------------------
+                Text('Platform Overview', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                SizedBox(height: 4),
+                Text('Live data from Firestore', style: theme.textTheme.bodySmall),
+                SizedBox(height: 16),
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _StatCard(label: 'Total Users', value: totalUsers.toString(), icon: Icons.people_rounded),
+                      SizedBox(width: 12),
+                      _StatCard(label: 'Verified Experts', value: activeExperts.toString(), icon: Icons.verified_rounded),
+                      SizedBox(width: 12),
+                      _StatCard(label: 'Total Employers', value: totalCompanies.toString(), icon: Icons.business_rounded),
+                    ],
                   ),
-                  child: ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: activities.length,
-                    separatorBuilder: (ctx, i) => Container(height: 1, color: AppTheme.border),
-                    itemBuilder: (context, index) {
-                      final data = activities[index].data() as Map<String, dynamic>;
-                      final type = data['type'] ?? 'info';
-                      final timestamp = (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
-                      final timeStr = _getTimeAgo(timestamp);
+                ),
+                SizedBox(height: 28),
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                        child: Row(
+                // -- Activity Log --------------------------------------------------
+                Text('Recent Activity', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+                SizedBox(height: 4),
+                Text('Latest platform events', style: theme.textTheme.bodySmall),
+                SizedBox(height: 16),
+                StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('activity')
+                      .orderBy('timestamp', descending: true)
+                      .limit(10)
+                      .snapshots(),
+                  builder: (context, activitySnapshot) {
+                    if (activitySnapshot.hasError) {
+                      return Text('Could not load activity: ${activitySnapshot.error}', style: TextStyle(color: theme.colorScheme.error));
+                    }
+                    if (activitySnapshot.connectionState == ConnectionState.waiting) {
+                      return Center(child: CircularProgressIndicator(color: AppTheme.accent));
+                    }
+                    final activities = activitySnapshot.data?.docs ?? [];
+                    if (activities.isEmpty) {
+                      return Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                          border: Border.all(color: theme.colorScheme.outline, width: 0.6),
+                        ),
+                        child: Column(
                           children: [
-                            _getActivityIcon(type),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    (data['message'] as String? ?? 'NULL_EVENT').toUpperCase(),
-                                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: AppTheme.textPrimary),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    'TIMESTAMP: $timeStr',
-                                    style: TextStyle(fontSize: 9, color: AppTheme.textSecondary, fontFamily: 'Courier'),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            Icon(Icons.history_rounded, size: 36, color: AppTheme.textSecondary),
+                            SizedBox(height: 12),
+                            Text('No recent activity', style: theme.textTheme.titleSmall),
+                            SizedBox(height: 4),
+                            Text('Events will appear here as they happen', style: theme.textTheme.bodySmall, textAlign: TextAlign.center),
                           ],
                         ),
                       );
-                    },
-                  ),
-                );
-              },
+                    }
+                    return Container(
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                        border: Border.all(color: theme.colorScheme.outline, width: 0.6),
+                        boxShadow: AppTheme.shadowSm,
+                      ),
+                      child: ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: activities.length,
+                        separatorBuilder: (ctx, i) => Divider(height: 1, color: theme.colorScheme.outline),
+                        itemBuilder: (context, index) {
+                          final data = activities[index].data() as Map<String, dynamic>;
+                          final type = data['type'] ?? 'info';
+                          final timestamp = (data['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now();
+                          return ListTile(
+                            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            leading: Container(
+                              padding: EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: _activityColor(type).withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                              ),
+                              child: Icon(_activityIcon(type), size: 16, color: _activityColor(type)),
+                            ),
+                            title: Text(data['message'] as String? ?? 'Unknown event', style: theme.textTheme.titleSmall),
+                            subtitle: Text(_timeAgo(timestamp), style: theme.textTheme.labelSmall),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+                SizedBox(height: 40),
+              ],
             ),
-            const SizedBox(height: 40),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
 
-  String _getGreeting() {
+  String _greeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Root Access: Morning';
-    if (hour < 17) return 'Root Access: Afternoon';
-    return 'Root Access: Evening';
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
   }
 
-  String _getTimeAgo(DateTime dateTime) {
-    final duration = DateTime.now().difference(dateTime);
-    if (duration.inMinutes < 60) return '${duration.inMinutes}M_AGO';
-    if (duration.inHours < 24) return '${duration.inHours}H_AGO';
-    return '${duration.inDays}D_AGO';
+  String _timeAgo(DateTime dateTime) {
+    final d = DateTime.now().difference(dateTime);
+    if (d.inMinutes < 60) return '${d.inMinutes}m ago';
+    if (d.inHours < 24) return '${d.inHours}h ago';
+    return '${d.inDays}d ago';
   }
 
-  Widget _getActivityIcon(String type) {
-    IconData icon;
+  IconData _activityIcon(String type) {
     switch (type) {
-      case 'user':
-        icon = Icons.person_add;
-        break;
-      case 'skill':
-        icon = Icons.terminal;
-        break;
-      case 'request':
-        icon = Icons.memory;
-        break;
-      default:
-        icon = Icons.info_outline;
+      case 'user':    return Icons.person_add_rounded;
+      case 'skill':   return Icons.auto_awesome_rounded;
+      case 'request': return Icons.send_rounded;
+      default:        return Icons.info_outline_rounded;
     }
-    return Icon(icon, color: AppTheme.accent, size: 16);
+  }
+
+  Color _activityColor(String type) {
+    switch (type) {
+      case 'user':    return const Color(0xFF5CC1B5);
+      case 'skill':   return const Color(0xFF6B8FFF);
+      case 'request': return const Color(0xFFFF8C69);
+      default:        return AppTheme.textSecondary;
+    }
   }
 }
 
-class _QuickAction extends StatelessWidget {
+class _DrawerItem extends StatelessWidget {
   final IconData icon;
-  final String label;
-  final VoidCallback onPressed;
+  final String title;
+  final Color color;
+  final VoidCallback onTap;
 
-  const _QuickAction({
-    required this.icon,
-    required this.label,
-    required this.onPressed,
-  });
+  const _DrawerItem({required this.icon, required this.title, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onPressed,
+    return ListTile(
+      leading: Icon(icon, color: color),
+      title: Text(title, style: TextStyle(fontWeight: FontWeight.w600)),
+      onTap: onTap,
+    );
+  }
+}
+
+class _AlertBanner extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _AlertBanner({required this.icon, required this.title, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AppTheme.surface,
-          border: Border.all(color: AppTheme.border),
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+          border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
         ),
         child: Row(
           children: [
-            Icon(icon, color: AppTheme.accent, size: 20),
-            const SizedBox(width: 12),
+            Icon(icon, color: color, size: 24),
+            SizedBox(width: 16),
             Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  color: AppTheme.textPrimary,
-                  letterSpacing: 0.5,
-                ),
-              ),
+              child: Text(title, style: TextStyle(color: color, fontWeight: FontWeight.bold)),
             ),
+            Icon(Icons.arrow_forward_ios_rounded, color: color, size: 16),
           ],
         ),
       ),
@@ -328,39 +379,31 @@ class _QuickAction extends StatelessWidget {
 class _StatCard extends StatelessWidget {
   final String label;
   final String value;
+  final IconData icon;
 
-  const _StatCard({required this.label, required this.value});
+  const _StatCard({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.all(16),
+      width: 140,
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.border),
+        color: isDark ? AppTheme.surface : AppTheme.lightSurface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: isDark ? AppTheme.border : AppTheme.lightBorder, width: 0.6),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(
-              fontSize: 8,
-              color: AppTheme.textSecondary,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.0,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w900,
-              color: AppTheme.accent,
-              fontFamily: 'Courier',
-            ),
-          ),
+          Icon(icon, size: 24, color: AppTheme.accent),
+          SizedBox(height: 12),
+          Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, color: AppTheme.accent)),
+          SizedBox(height: 4),
+          Text(label, style: theme.textTheme.labelSmall, maxLines: 2, overflow: TextOverflow.ellipsis),
         ],
       ),
     );

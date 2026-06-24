@@ -42,38 +42,38 @@ class _ApproveEmployersScreenState extends State<ApproveEmployersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Approve Employers'),
-        backgroundColor: const Color(0xFF121212),
+        title: Text('Approve Employers'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
-            .where('role', whereIn: const ['Company', 'Employer', 'company', 'employer'])
+            .where('role', whereIn: ['Company', 'Employer', 'company', 'employer'])
             .where('isVerified', isEqualTo: false)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
+            return Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)));
           }
 
           final pendingEmployers = snapshot.data?.docs ?? [];
 
           if (pendingEmployers.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.business, color: Colors.white24, size: 64),
                   SizedBox(height: 16),
-                  Text('No pending employers.', style: TextStyle(color: Colors.white70, fontSize: 18)),
+                  Text('No pending employers.', style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7), fontSize: 18)),
                 ],
               ),
             );
           }
 
           return ListView.builder(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             itemCount: pendingEmployers.length,
             itemBuilder: (context, index) {
               final doc = pendingEmployers[index];
@@ -83,37 +83,37 @@ class _ApproveEmployersScreenState extends State<ApproveEmployersScreen> {
               final userId = doc.id;
 
               return Card(
-                color: const Color(0xFF1E1E1E),
-                margin: const EdgeInsets.only(bottom: 16),
+                color: Theme.of(context).colorScheme.surface,
+                margin: EdgeInsets.only(bottom: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: const Color(0xFF2A2A2A),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: const Icon(Icons.business, color: Color(0xFFFF6B6B)),
+                            child: Icon(Icons.business, color: Color(0xFFFF6B6B)),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
-                                Text(industry, style: const TextStyle(color: Color(0xFFCCCCCC))),
+                                Text(name, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.white)),
+                                Text(industry, style: TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7))),
                               ],
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Row(
                         children: [
                           Expanded(
@@ -123,17 +123,17 @@ class _ApproveEmployersScreenState extends State<ApproveEmployersScreen> {
                                 foregroundColor: Colors.redAccent,
                                 side: const BorderSide(color: Colors.redAccent),
                               ),
-                              child: const Text('Decline'),
+                              child: Text('Decline'),
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: ElevatedButton(
                               onPressed: _isProcessing ? null : () => _handleAction(userId, name, true),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF4CAF50),
                               ),
-                              child: const Text('Approve', style: TextStyle(color: Colors.white)),
+                              child: Text('Approve', style: TextStyle(color: Colors.white)),
                             ),
                           ),
                         ],

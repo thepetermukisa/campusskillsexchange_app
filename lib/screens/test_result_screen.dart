@@ -9,10 +9,10 @@ class TestResultScreen extends StatelessWidget {
   final int totalQuestions;
 
   const TestResultScreen({
-    Key? key,
+    super.key,
     required this.score,
     required this.totalQuestions,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -33,13 +33,13 @@ class TestResultScreen extends StatelessWidget {
         ),
         child: Center(
           child: Card(
-            margin: const EdgeInsets.all(16.0),
+            margin: EdgeInsets.all(16.0),
             elevation: 10.0,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20.0),
             ),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
+              padding: EdgeInsets.symmetric(
                 vertical: 40.0,
                 horizontal: 20.0,
               ),
@@ -56,7 +56,7 @@ class TestResultScreen extends StatelessWidget {
                           : Colors.red.shade700,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Text(
                     'Your Score',
                     style: TextStyle(
@@ -64,7 +64,7 @@ class TestResultScreen extends StatelessWidget {
                       color: Colors.grey.shade800,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: 10),
                   Text(
                     '${score.toStringAsFixed(1)}%',
                     style: TextStyle(
@@ -73,7 +73,7 @@ class TestResultScreen extends StatelessWidget {
                       color: Theme.of(context).primaryColor,
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Text(
                     'You answered $correctAnswers out of $totalQuestions questions correctly.',
                     textAlign: TextAlign.center,
@@ -82,15 +82,16 @@ class TestResultScreen extends StatelessWidget {
                       color: Colors.grey.shade600,
                     ),
                   ),
-                  const SizedBox(height: 40),
+                  SizedBox(height: 40),
                   ElevatedButton(
                     onPressed: () {
+                      // Pop back to BecomeExpertScreen
                       Navigator.of(context).pop();
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
                       backgroundColor: Theme.of(context).primaryColor,
-                      padding: const EdgeInsets.symmetric(
+                      padding: EdgeInsets.symmetric(
                         horizontal: 50,
                         vertical: 15,
                       ),
@@ -99,7 +100,7 @@ class TestResultScreen extends StatelessWidget {
                       ),
                       elevation: 5.0,
                     ),
-                    child: const Text(
+                    child: Text(
                       'Continue Application',
                       style: TextStyle(fontSize: 18),
                     ),

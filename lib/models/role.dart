@@ -16,7 +16,6 @@ class RoleHelper {
       case Role.administrator:
         return 'administrator';
       case Role.student:
-      default:
         return 'student';
     }
   }

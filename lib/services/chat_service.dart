@@ -54,8 +54,18 @@ class ChatService {
     return _firestore
         .collection('chats')
         .where('participants', arrayContains: uid)
-        .orderBy('lastMessageTime', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs.map((doc) => {...doc.data(), 'id': doc.id}).toList());
+        .map((snapshot) {
+          final docs = snapshot.docs.map((doc) => {...doc.data(), 'id': doc.id}).toList();
+          docs.sort((a, b) {
+            final aTime = a['lastMessageTime'] as Timestamp?;
+            final bTime = b['lastMessageTime'] as Timestamp?;
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return bTime.compareTo(aTime);
+          });
+          return docs;
+        });
   }
 }

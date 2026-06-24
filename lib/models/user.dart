@@ -3,6 +3,7 @@ import 'role.dart';
 class User {
   final String id;
   final String name;
+  final String bio;
   final String email;
   final Role role; // typed Role enum
   final bool isVerified;
@@ -11,6 +12,7 @@ class User {
   final int completedJobs;
   final double rating;
   final List<String> endorsements;
+  final bool isBanned;
   final String? profileImageUrl;
   final int reviews;
   final int hostingYears;
@@ -22,6 +24,7 @@ class User {
   User({
     required this.id,
     required this.name,
+    this.bio = '',
     required this.email,
     required this.role,
     this.isVerified = false,
@@ -30,6 +33,7 @@ class User {
     this.completedJobs = 0,
     this.rating = 0.0,
     this.endorsements = const [],
+    this.isBanned = false,
     this.profileImageUrl,
     this.reviews = 0,
     this.hostingYears = 0,
@@ -41,6 +45,7 @@ class User {
     return {
       'id': id,
       'name': name,
+      'bio': bio,
       'email': email,
       'role': RoleHelper.toStringValue(role),
       'isVerified': isVerified,
@@ -49,6 +54,7 @@ class User {
       'completedJobs': completedJobs,
       'rating': rating,
       'endorsements': endorsements,
+      'isBanned': isBanned,
       'profileImageUrl': profileImageUrl,
       'reviews': reviews,
       'hostingYears': hostingYears,
@@ -61,6 +67,7 @@ class User {
     return User(
       id: documentId,
       name: map['name'] ?? '',
+      bio: map['bio'] ?? '',
       email: map['email'] ?? '',
       role: RoleHelper.fromString(map['role']),
       isVerified: map['isVerified'] ?? false,
@@ -69,6 +76,7 @@ class User {
       completedJobs: map['completedJobs'] ?? 0,
       rating: (map['rating'] ?? 0.0).toDouble(),
       endorsements: List<String>.from(map['endorsements'] ?? []),
+      isBanned: map['isBanned'] ?? false,
       profileImageUrl: map['profileImageUrl'],
       reviews: map['reviews'] ?? 0,
       hostingYears: map['hostingYears'] ?? 0,

@@ -16,97 +16,128 @@ class MyProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border.all(color: AppTheme.border),
+        color: isDark ? AppTheme.surface : AppTheme.lightSurface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+        border: Border.all(
+          color: isDark ? AppTheme.border : AppTheme.lightBorder,
+          width: 0.6,
+        ),
+        boxShadow: AppTheme.shadowSm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              // Profile Picture
+              // Avatar
               Container(
-                width: 64,
-                height: 64,
+                width: 60,
+                height: 60,
                 decoration: BoxDecoration(
-                  border: Border.all(color: AppTheme.accent, width: 2),
+                  shape: BoxShape.circle,
+                  gradient: AppTheme.accentGradient,
+                  boxShadow: AppTheme.shadowAccent,
                 ),
-                child: user.profileImageUrl != null
-                    ? Image.network(user.profileImageUrl!, fit: BoxFit.cover)
-                    : Center(
-                        child: Text(
-                          user.name[0].toUpperCase(),
-                          style: TextStyle(
-                            color: AppTheme.accent,
-                            fontSize: 24,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                      ),
+                child: Padding(
+                  padding: const EdgeInsets.all(2.5),
+                  child: CircleAvatar(
+                    radius: 28,
+                    backgroundColor: isDark ? AppTheme.surfaceElevated : const Color(0xFFEFF6F5),
+                    backgroundImage: user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty
+                        ? NetworkImage(user.profileImageUrl!)
+                        : null,
+                    child: (user.profileImageUrl == null || user.profileImageUrl!.isEmpty)
+                        ? Text(
+                            user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                            style: const TextStyle(
+                              color: AppTheme.accent,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          )
+                        : null,
+                  ),
+                ),
               ),
-              const SizedBox(width: 20),
-              // Stats
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      user.name.toUpperCase(),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.5,
-                          ),
+                      user.name,
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      color: user.isVerified ? AppTheme.accent : AppTheme.border,
-                      child: Text(
-                        user.role.name.toUpperCase(),
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: user.isVerified ? Colors.black : AppTheme.textSecondary,
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: user.isVerified
+                                ? AppTheme.accent.withValues(alpha: 0.15)
+                                : (isDark ? AppTheme.surfaceElevated : const Color(0xFFF0F4F8)),
+                            borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                            border: Border.all(
+                              color: user.isVerified ? AppTheme.accent : (isDark ? AppTheme.border : AppTheme.lightBorder),
+                              width: 0.6,
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (user.isVerified) ...[
+                                const Icon(Icons.verified_rounded, size: 10, color: AppTheme.accent),
+                                const SizedBox(width: 4),
+                              ],
+                              Text(
+                                user.role.name[0].toUpperCase() + user.role.name.substring(1),
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: user.isVerified ? AppTheme.accent : (isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              _StatItem(
-                label: 'REVIEWS',
-                value: user.reviews.toString().padLeft(2, '0'),
-              ),
-              _StatItem(
-                label: 'RATING',
-                value: user.rating.toStringAsFixed(1),
-              ),
-              _StatItem(
-                label: 'EXP_LVL',
-                value: '${user.hostingYears}Y',
-              ),
-            ],
+          const SizedBox(height: 20),
+          const Divider(height: 1),
+          const SizedBox(height: 20),
+          // Stats row
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _StatItem(label: 'Reviews', value: user.reviews.toString()),
+                VerticalDivider(width: 1, color: isDark ? AppTheme.border : AppTheme.lightBorder),
+                _StatItem(label: 'Rating', value: user.rating.toStringAsFixed(1)),
+                VerticalDivider(width: 1, color: isDark ? AppTheme.border : AppTheme.lightBorder),
+                _StatItem(label: 'Experience', value: '${user.hostingYears}y'),
+              ],
+            ),
           ),
           if (description != null) ...[
-            const Divider(height: 48),
-            Text(
-              'BIO // STATUS',
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
-            const SizedBox(height: 12),
-            Text(
-              description!,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            const SizedBox(height: 20),
+            const Divider(height: 1),
+            const SizedBox(height: 16),
+            Text('About', style: theme.textTheme.labelLarge),
+            const SizedBox(height: 8),
+            Text(description!, style: theme.textTheme.bodyMedium),
           ],
         ],
       ),
@@ -118,35 +149,22 @@ class _StatItem extends StatelessWidget {
   final String label;
   final String value;
 
-  const _StatItem({
-    required this.label,
-    required this.value,
-  });
+  const _StatItem({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
-          style: TextStyle(
-            fontSize: 10,
-            color: AppTheme.textSecondary,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.0,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
           value,
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w700,
             color: AppTheme.accent,
-            fontFamily: 'Courier',
           ),
         ),
+        const SizedBox(height: 2),
+        Text(label, style: theme.textTheme.labelSmall),
       ],
     );
   }

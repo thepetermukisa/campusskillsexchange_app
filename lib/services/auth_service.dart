@@ -46,6 +46,15 @@ class AuthService {
     if (userCredential.user != null) {
       await userCredential.user!.updateDisplayName(name);
       await ensureUserDocument(userCredential.user!, name: name, role: role);
+
+      // 3. Log activity
+      try {
+        await _firestore.collection('activity').add({
+          'type': 'user',
+          'message': '$name joined as ${role.isNotEmpty ? role : 'student'}',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+      } catch (_) {}
     }
 
     return userCredential;

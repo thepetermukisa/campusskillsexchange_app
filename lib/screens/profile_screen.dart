@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide User;
 import '../models/user.dart';
+import '../theme/app_theme.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String? userId;
@@ -10,34 +12,24 @@ class ProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final uid = userId ?? FirebaseAuth.instance.currentUser?.uid;
+    final isCurrentUser = uid == FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        backgroundColor: const Color(0xFF121212),
-        foregroundColor: Colors.white,
-      ),
+      appBar: AppBar(title: Text('Profile')),
       body: uid == null
-          ? const Center(child: Text('Not logged in'))
-          : FutureBuilder<DocumentSnapshot>(
-              future: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(uid)
-                  .get(),
+          ? Center(child: Text('Not logged in'))
+          : StreamBuilder<DocumentSnapshot>(
+              stream: FirebaseFirestore.instance.collection('users').doc(uid).snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child:
-                        CircularProgressIndicator(color: Color(0xFFFF6B6B)),
-                  );
+                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
+                  return Center(child: CircularProgressIndicator(color: AppTheme.accent));
                 }
                 if (!snapshot.hasData || !snapshot.data!.exists) {
-                  return const Center(child: Text('User not found.'));
+                  return Center(child: Text('User not found.'));
                 }
-                final data =
-                    snapshot.data!.data() as Map<String, dynamic>? ?? {};
+                final data = snapshot.data!.data() as Map<String, dynamic>? ?? {};
                 final currentUser = User.fromMap(data, uid);
-                return _ProfileBody(user: currentUser);
+                return _ProfileBody(user: currentUser, isCurrentUser: isCurrentUser);
               },
             ),
     );
@@ -46,79 +38,116 @@ class ProfileScreen extends StatelessWidget {
 
 class _ProfileBody extends StatelessWidget {
   final User user;
-  const _ProfileBody({required this.user});
+  final bool isCurrentUser;
+  const _ProfileBody({required this.user, required this.isCurrentUser});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header card ──────────────────────────────────────────────────
+          // -- Hero card -----------------------------------------------------
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E1E1E),
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5)),
-              ],
+              gradient: LinearGradient(
+                colors: isDark
+                    ? [AppTheme.surface, AppTheme.surfaceElevated]
+                    : [AppTheme.lightSurface, const Color(0xFFF0F6FF)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+              border: Border.all(color: isDark ? AppTheme.border : AppTheme.lightBorder, width: 0.6),
+              boxShadow: AppTheme.shadowMd,
             ),
             child: Row(
               children: [
-                CircleAvatar(
-                  radius: 36,
-                  backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.2),
-                  backgroundImage: (user.profileImageUrl != null &&
-                          user.profileImageUrl!.isNotEmpty)
-                      ? NetworkImage(user.profileImageUrl!)
-                      : null,
-                  child: (user.profileImageUrl == null ||
-                          user.profileImageUrl!.isEmpty)
-                      ? Text(
-                          user.name.isNotEmpty
-                              ? user.name[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                              fontSize: 28,
-                              color: Color(0xFFFF6B6B),
-                              fontWeight: FontWeight.bold),
-                        )
-                      : null,
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: AppTheme.accentGradient,
+                    boxShadow: AppTheme.shadowAccent,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(2.5),
+                    child: CircleAvatar(
+                      radius: 34,
+                      backgroundColor: isDark ? AppTheme.surfaceElevated : const Color(0xFFEFF6F5),
+                      backgroundImage: (user.profileImageUrl != null && user.profileImageUrl!.isNotEmpty)
+                          ? NetworkImage(user.profileImageUrl!)
+                          : null,
+                      child: (user.profileImageUrl == null || user.profileImageUrl!.isEmpty)
+                          ? Text(
+                              user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                              style: TextStyle(fontSize: 28, color: AppTheme.accent, fontWeight: FontWeight.w700),
+                            )
+                          : null,
+                    ),
+                  ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(user.name, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700), overflow: TextOverflow.ellipsis),
+                          ),
+                          if (user.isVerified)
+                            Padding(
+                              padding: EdgeInsets.only(left: 4),
+                              child: Icon(Icons.verified, color: Colors.blue, size: 20),
+                            ),
+                        ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(user.email,
-                          style: const TextStyle(color: Color(0xFFCCCCCC))),
-                      const SizedBox(height: 8),
-                      Chip(
-                        label: Text(
-                          user.subSkills.isNotEmpty ? 'Expert' : 'Student',
-                          style: const TextStyle(fontSize: 12),
+                      SizedBox(height: 4),
+                      Text(user.email, style: theme.textTheme.bodySmall, overflow: TextOverflow.ellipsis),
+                      if (user.bio.isNotEmpty) ...[
+                        SizedBox(height: 8),
+                        Text(user.bio, style: theme.textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis),
+                      ],
+                      SizedBox(height: 8),
+                      Container(
+                        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: user.subSkills.isNotEmpty
+                              ? AppTheme.accent.withValues(alpha: 0.12)
+                              : Colors.blue.withValues(alpha: 0.10),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                          border: Border.all(
+                            color: user.subSkills.isNotEmpty ? AppTheme.accent.withValues(alpha: 0.4) : Colors.blue.withValues(alpha: 0.4),
+                            width: 0.6,
+                          ),
                         ),
-                        backgroundColor: user.subSkills.isNotEmpty
-                            ? const Color(0xFFFF6B6B)
-                            : const Color(0xFF4CAF50),
-                        labelStyle:
-                            const TextStyle(color: Colors.white),
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize:
-                            MaterialTapTargetSize.shrinkWrap,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              user.subSkills.isNotEmpty ? Icons.verified_rounded : Icons.school_rounded,
+                              size: 11,
+                              color: user.subSkills.isNotEmpty ? AppTheme.accent : Colors.blue,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              user.subSkills.isNotEmpty ? 'Expert' : 'Student',
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: user.subSkills.isNotEmpty ? AppTheme.accent : Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -126,112 +155,91 @@ class _ProfileBody extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 30),
+          
+          if (isCurrentUser) ...[
+            SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                icon: Icon(Icons.edit, size: 18),
+                label: Text('Edit Profile'),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  side: BorderSide(color: AppTheme.accent.withValues(alpha: 0.5)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppTheme.radiusLg)),
+                ),
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => EditProfileScreen(user: user)));
+                },
+              ),
+            ),
+          ],
+          
+          SizedBox(height: 24),
 
-          // ── Expert details ───────────────────────────────────────────────
+          // -- Expert metrics ------------------------------------------------
           if (user.subSkills.isNotEmpty) ...[
-            const Text('Expert Details',
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white)),
-            const SizedBox(height: 10),
+            Text('Expert Metrics', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+            SizedBox(height: 12),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                      color: Colors.black.withOpacity(0.2),
-                      blurRadius: 10,
-                      offset: const Offset(0, 5))
-                ],
+                color: isDark ? AppTheme.surface : AppTheme.lightSurface,
+                borderRadius: BorderRadius.circular(AppTheme.radiusXl),
+                border: Border.all(color: isDark ? AppTheme.border : AppTheme.lightBorder, width: 0.6),
+                boxShadow: AppTheme.shadowSm,
               ),
               child: Column(
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      _StatItem(
-                          label: 'Jobs',
-                          value: user.completedJobs.toString(),
-                          icon: Icons.work_outline),
-                      _StatItem(
-                          label: 'Rating',
-                          value: user.rating.toStringAsFixed(1),
-                          icon: Icons.star_border),
-                      _StatItem(
-                          label: 'Reviews',
-                          value: user.reviews.toString(),
-                          icon: Icons.reviews_outlined),
+                      _StatItem(label: 'Jobs', value: user.completedJobs.toString(), icon: Icons.work_outline_rounded),
+                      _StatItem(label: 'Rating', value: user.rating.toStringAsFixed(1), icon: Icons.star_outline_rounded),
+                      _StatItem(label: 'Reviews', value: user.reviews.toString(), icon: Icons.reviews_outlined),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  const Divider(color: Color(0xFF333333)),
-                  const SizedBox(height: 8),
-                  const Align(
+                  SizedBox(height: 20),
+                  Divider(height: 1),
+                  SizedBox(height: 16),
+                  Align(
                     alignment: Alignment.centerLeft,
-                    child: Text('Skills & Endorsements',
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white)),
+                    child: Text('Skills & Endorsements', style: theme.textTheme.titleSmall),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Wrap(
                       spacing: 8,
                       runSpacing: 8,
-                      children: user.subSkills
-                          .map((skill) => Chip(
-                                label: Text(skill,
-                                    style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white)),
-                                backgroundColor:
-                                    const Color(0xFF333333),
-                              ))
-                          .toList(),
+                      children: user.subSkills.map((skill) => Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isDark ? AppTheme.surfaceElevated : const Color(0xFFF0F4F8),
+                          borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                          border: Border.all(color: isDark ? AppTheme.border : AppTheme.lightBorder, width: 0.6),
+                        ),
+                        child: Text(skill, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
+                      )).toList(),
                     ),
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 24),
           ],
 
-          // ── Account options ──────────────────────────────────────────────
-          const Text('Account Options',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white)),
-          const SizedBox(height: 10),
-          const _ProfileOption(
-              icon: Icons.notifications_outlined,
-              title: 'Notifications',
-              subtitle: 'View and manage your notifications'),
-          const _ProfileOption(
-              icon: Icons.language_outlined,
-              title: 'Change language',
-              subtitle: 'English (US)'),
-          const SizedBox(height: 20),
-          const Text('Support',
-              style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white)),
-          const SizedBox(height: 10),
-          const _ProfileOption(
-              icon: Icons.chat_bubble_outline,
-              title: 'Get in touch',
-              subtitle: 'Email, call or find us on social media'),
-          const _ProfileOption(
-              icon: Icons.help_outline,
-              title: 'Guides and tours',
-              subtitle: 'What do you want to learn today?'),
-          const SizedBox(height: 40),
+          // -- Settings ------------------------------------------------------
+          Text('Account', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          SizedBox(height: 12),
+          _ProfileOption(icon: Icons.notifications_outlined, title: 'Notifications', subtitle: 'Manage alerts and push notifications'),
+          _ProfileOption(icon: Icons.language_outlined, title: 'Language & Region', subtitle: 'English (US)'),
+          SizedBox(height: 24),
+          Text('Support', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          SizedBox(height: 12),
+          _ProfileOption(icon: Icons.chat_bubble_outline_rounded, title: 'Contact Support', subtitle: 'Email, call or connect with us'),
+          _ProfileOption(icon: Icons.help_outline_rounded, title: 'Help Center', subtitle: 'Read guides and tutorials'),
+          SizedBox(height: 40),
         ],
       ),
     );
@@ -243,23 +251,18 @@ class _StatItem extends StatelessWidget {
   final String value;
   final IconData icon;
 
-  const _StatItem(
-      {required this.label, required this.value, required this.icon});
+  const _StatItem({required this.label, required this.value, required this.icon});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
-        Icon(icon, color: const Color(0xFFFF6B6B), size: 28),
-        const SizedBox(height: 8),
-        Text(value,
-            style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white)),
-        Text(label,
-            style:
-                const TextStyle(fontSize: 12, color: Color(0xFFCCCCCC))),
+        Icon(icon, color: AppTheme.accent, size: 24),
+        SizedBox(height: 6),
+        Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, color: AppTheme.accent)),
+        SizedBox(height: 2),
+        Text(label, style: theme.textTheme.labelSmall),
       ],
     );
   }
@@ -270,58 +273,33 @@ class _ProfileOption extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const _ProfileOption({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-  });
+  const _ProfileOption({required this.icon, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
+      margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 4,
-              offset: const Offset(0, 2))
-        ],
+        color: isDark ? AppTheme.surface : AppTheme.lightSurface,
+        borderRadius: BorderRadius.circular(AppTheme.radiusLg),
+        border: Border.all(color: isDark ? AppTheme.border : AppTheme.lightBorder, width: 0.6),
+        boxShadow: AppTheme.shadowSm,
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFF6B6B).withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: const Color(0xFFFF6B6B)),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        leading: Container(
+          padding: EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: AppTheme.accent.withValues(alpha: 0.10),
+            borderRadius: BorderRadius.circular(AppTheme.radiusSm),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 16)),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(subtitle,
-                      style: const TextStyle(
-                          fontSize: 13, color: Color(0xFFCCCCCC))),
-                ],
-              ],
-            ),
-          ),
-          const Icon(Icons.chevron_right, color: Color(0xFF666666)),
-        ],
+          child: Icon(icon, color: AppTheme.accent, size: 20),
+        ),
+        title: Text(title, style: theme.textTheme.titleSmall),
+        subtitle: subtitle.isNotEmpty ? Text(subtitle, style: theme.textTheme.bodySmall) : null,
+        trailing: Icon(Icons.chevron_right_rounded, color: isDark ? AppTheme.textSecondary : AppTheme.lightTextSecondary, size: 20),
       ),
     );
   }

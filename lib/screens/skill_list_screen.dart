@@ -13,7 +13,7 @@ class SkillListScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(category),
-        backgroundColor: const Color(0xFF121212),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         foregroundColor: Colors.white,
       ),
       body: StreamBuilder<QuerySnapshot>(
@@ -23,7 +23,7 @@ class SkillListScreen extends StatelessWidget {
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
+            return Center(
               child: CircularProgressIndicator(color: Color(0xFFFF6B6B)),
             );
           }
@@ -33,14 +33,14 @@ class SkillListScreen extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.search_off, size: 64, color: Colors.white38),
-                  const SizedBox(height: 16),
-                  const Text(
+                  Icon(Icons.search_off, size: 64, color: Colors.white38),
+                  SizedBox(height: 16),
+                  Text(
                     'No experts in this category yet.',
-                    style: TextStyle(color: Colors.white54),
+                    style: TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54)),
                   ),
-                  const SizedBox(height: 8),
-                  const Text(
+                  SizedBox(height: 8),
+                  Text(
                     'Be the first to offer a skill!',
                     style: TextStyle(color: Colors.white38, fontSize: 13),
                   ),
@@ -59,12 +59,12 @@ class SkillListScreen extends StatelessWidget {
             itemBuilder: (ctx, i) {
               final skill = skills[i];
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 child: Card(
-                  color: const Color(0xFF1E1E1E),
+                  color: Theme.of(context).colorScheme.surface,
                   child: ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.2),
+                      backgroundColor: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
                       backgroundImage: skill.instructorPhotoUrl.isNotEmpty
                           ? NetworkImage(skill.instructorPhotoUrl)
                           : null,
@@ -74,7 +74,7 @@ class SkillListScreen extends StatelessWidget {
                                   ? skill.instructorName[0].toUpperCase()
                                   : '?',
                               style:
-                                  const TextStyle(color: Color(0xFFFF6B6B)),
+                                  TextStyle(color: Color(0xFFFF6B6B)),
                             )
                           : null,
                     ),
@@ -82,10 +82,10 @@ class SkillListScreen extends StatelessWidget {
                       children: [
                         Text(
                           skill.instructorName,
-                          style: const TextStyle(
+                          style: TextStyle(
                               fontWeight: FontWeight.bold, color: Colors.white),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         _buildLevelBadge(skill.level),
                       ],
                     ),
@@ -94,24 +94,24 @@ class SkillListScreen extends StatelessWidget {
                       children: [
                         Text(skill.name,
                             style:
-                                const TextStyle(color: Color(0xFFCCCCCC))),
-                        const SizedBox(height: 4),
+                                TextStyle(color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7))),
+                        SizedBox(height: 4),
                         Row(
                           children: [
                             Text('${skill.rating} ★',
-                                style: const TextStyle(
+                                style: TextStyle(
                                     color: Color(0xFFFF6B6B))),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text('${skill.reviews} reviews',
                                 style:
-                                    const TextStyle(color: Colors.white54)),
+                                    TextStyle(color: Theme.of(context).textTheme.bodySmall!.color!.withValues(alpha: 0.54))),
                           ],
                         ),
                       ],
                     ),
                     trailing: Text(
                       'UGX ${skill.pricePerLesson}/lesson',
-                      style: const TextStyle(
+                      style: TextStyle(
                           color: Color(0xFFFF6B6B),
                           fontWeight: FontWeight.bold),
                     ),
@@ -158,9 +158,9 @@ class SkillListScreen extends StatelessWidget {
       color = Colors.amber;
     }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.15),
+        color: color.withValues(alpha: 0.15),
         border: Border.all(color: color, width: 1),
         borderRadius: BorderRadius.circular(4),
       ),

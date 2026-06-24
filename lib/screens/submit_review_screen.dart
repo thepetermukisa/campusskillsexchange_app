@@ -65,18 +65,18 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Write a Review')),
+      appBar: AppBar(title: Text('Write a Review')),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
               'Rate your experience with ${widget.targetName}',
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(5, (index) {
@@ -90,32 +90,32 @@ class _SubmitReviewScreenState extends State<SubmitReviewScreen> {
                 );
               }),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             TextField(
               controller: _commentController,
               maxLines: 5,
-              style: const TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white),
               decoration: InputDecoration(
                 hintText: 'Share your thoughts...',
-                hintStyle: const TextStyle(color: Colors.white24),
+                hintStyle: TextStyle(color: Colors.white24),
                 filled: true,
-                fillColor: const Color(0xFF1E1E1E),
+                fillColor: Theme.of(context).colorScheme.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
               ),
             ),
-            const SizedBox(height: 48),
+            SizedBox(height: 48),
             if (_isLoading)
-              const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
+              Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
             else
               ElevatedButton(
                 onPressed: _submit,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFFFF6B6B),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Submit Review', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                child: Text('Submit Review', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               ),
           ],
         ),

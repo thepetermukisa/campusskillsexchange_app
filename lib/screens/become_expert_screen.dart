@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/skill.dart';
 import '../models/role.dart';
 import '../services/firebase_service.dart';
-import '../theme/app_theme.dart';
 import './skill_test_screen.dart';
 import './test_result_screen.dart';
 
@@ -145,7 +144,7 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
       final skill = Skill(
         id: '', // Will be generated
         name: _selectedSkill!,
-        description: 'Verified ${_selectedSkill} expert.',
+        description: 'Verified $_selectedSkill expert.',
         category: _selectedCategory!,
         userIds: [user.uid],
         instructorId: user.uid,
@@ -158,7 +157,7 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
         flag: '🇺🇬',
         lessons: 0,
         experienceYears: 1,
-        bio: 'I am a passionate ${_selectedSkill} expert.',
+        bio: 'I am a passionate $_selectedSkill expert.',
         tags: [_selectedCategory!, _selectedSkill!],
         coverImageUrl: _portfolioUrls.isNotEmpty ? _portfolioUrls[0] : '',
       );
@@ -184,11 +183,11 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Become an Expert'),
-        backgroundColor: const Color(0xFF121212),
-        foregroundColor: const Color(0xFFCCCCCC),
+        title: Text('Become an Expert'),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+        foregroundColor: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back),
           onPressed: _currentPage == 0
               ? () => Navigator.of(context).pop()
               : _prevPage,
@@ -250,7 +249,7 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
           ? null
           : SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: EdgeInsets.all(16),
                 child: ElevatedButton(
                   onPressed:
                       (_currentPage == 0 && _selectedCategory == null) ||
@@ -260,14 +259,14 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
                       : _nextPage,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF6B6B),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
                   child: Text(
                     _currentPage == 4 ? 'Submit for Verification' : 'Continue',
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -285,27 +284,27 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
     required String? selected,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Select Your Main Category',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           ...categories.map(
             (cat) => Card(
               color: selected == cat
                   ? const Color(0xFFFF6B6B)
-                  : const Color(0xFF1E1E1E),
+                  : Theme.of(context).colorScheme.surface,
               child: ListTile(
                 title: Text(cat),
-                trailing: selected == cat ? const Icon(Icons.check) : null,
+                trailing: selected == cat ? Icon(Icons.check) : null,
                 onTap: () => onSelect(cat),
                 tileColor: selected == cat
                     ? const Color(0xFFFF6B6B)
-                    : const Color(0xFF1E1E1E),
+                    : Theme.of(context).colorScheme.surface,
               ),
             ),
           ),
@@ -321,15 +320,15 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
     required Function(String) onToggle,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Select Your Sub-skill',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -356,7 +355,7 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
     required int totalQuestions,
   }) {
     if (skillName == null) {
-      return const Center(child: Text('Please select a skill first.'));
+      return Center(child: Text('Please select a skill first.'));
     }
 
     // Use the skill name (slugged) as the ID — Gemini generates questions
@@ -369,11 +368,11 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
         children: [
           Text(
             'Skill Test: $skillName',
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 20),
-          const Text('You need to pass a short AI-generated quiz to verify your skill.'),
-          const SizedBox(height: 40),
+          SizedBox(height: 20),
+          Text('You need to pass a short AI-generated quiz to verify your skill.'),
+          SizedBox(height: 40),
           ElevatedButton(
             onPressed: () async {
               final score = await Navigator.of(context).push<double>(
@@ -387,8 +386,11 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
               );
               if (!mounted) return;
               if (score != null) {
-                onTestPassed(score >= 60);
-                Navigator.of(context).push(
+                final passed = score >= 60;
+                onTestPassed(passed);
+                // Show result screen; when user taps "Continue Application"
+                // it will pop back here.
+                await Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (ctx) => TestResultScreen(
                       score: score,
@@ -400,9 +402,9 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF6B6B),
-              padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
             ),
-            child: const Text('Take the Quiz', style: TextStyle(fontSize: 18)),
+            child: Text('Take the Quiz', style: TextStyle(fontSize: 18)),
           ),
         ],
       ),
@@ -415,31 +417,31 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
     required List<String> portfolioUrls,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Add Portfolio Items',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
-          const Text('Upload photos of your previous work'),
-          const SizedBox(height: 24),
+          SizedBox(height: 16),
+          Text('Upload photos of your previous work'),
+          SizedBox(height: 24),
           if (_isUploading)
-            const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
+            Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
           else
             ElevatedButton.icon(
               onPressed: onAddPortfolio,
-              icon: const Icon(Icons.add_a_photo),
-              label: const Text('Add Image'),
+              icon: Icon(Icons.add_a_photo),
+              label: Text('Add Image'),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFFF6B6B).withOpacity(0.1),
+                backgroundColor: const Color(0xFFFF6B6B).withValues(alpha: 0.1),
                 foregroundColor: const Color(0xFFFF6B6B),
-                padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                padding: EdgeInsets.symmetric(vertical: 16, horizontal: 24),
               ),
             ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           if (portfolioUrls.isNotEmpty)
             Expanded(
               child: GridView.builder(
@@ -466,50 +468,50 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
     required String? idUrl,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Student ID Verification',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 16),
-          const Text('Upload a photo of your student ID for verification'),
-          const SizedBox(height: 24),
+          SizedBox(height: 16),
+          Text('Upload a photo of your student ID for verification'),
+          SizedBox(height: 24),
           Center(
             child: Container(
               width: double.infinity,
               height: 200,
               decoration: BoxDecoration(
-                color: const Color(0xFF1E1E1E),
-                border: Border.all(color: const Color(0xFFFF6B6B).withOpacity(0.3)),
+                color: Theme.of(context).colorScheme.surface,
+                border: Border.all(color: const Color(0xFFFF6B6B).withValues(alpha: 0.3)),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: _isUploading
-                  ? const Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
+                  ? Center(child: CircularProgressIndicator(color: Color(0xFFFF6B6B)))
                   : idUrl != null
                       ? ClipRRect(
                           borderRadius: BorderRadius.circular(12),
                           child: Image.network(idUrl, fit: BoxFit.cover),
                         )
-                      : const Icon(
+                      : Icon(
                           Icons.badge_outlined,
                           size: 60,
-                          color: Color(0xFFCCCCCC),
+                          color: Theme.of(context).textTheme.bodyMedium!.color!.withValues(alpha: 0.7),
                         ),
             ),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: _isUploading ? null : onUploadId,
               label: Text(idUrl != null ? 'Change ID Photo' : 'Upload ID'),
-              icon: const Icon(Icons.camera_alt),
+              icon: Icon(Icons.camera_alt),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFFF6B6B),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: EdgeInsets.symmetric(vertical: 16),
               ),
             ),
           ),
@@ -527,26 +529,26 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
     required Function() onSubmit,
   }) {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Review Your Application',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           _buildInfoCard('Category', category),
           _buildInfoCard('Sub-skills', subSkills.join(', ')),
           _buildInfoCard('Portfolio Items', portfolioCount.toString()),
           _buildInfoCard('ID Uploaded', hasId ? 'Yes' : 'No'),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           ElevatedButton(
             onPressed: onSubmit,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFFF6B6B),
             ),
-            child: const Text('Submit for Verification'),
+            child: Text('Submit for Verification'),
           ),
         ],
       ),
@@ -555,13 +557,13 @@ class _BecomeExpertScreenState extends State<BecomeExpertScreen> {
 
   Widget _buildInfoCard(String title, String value) {
     return Card(
-      color: const Color(0xFF1E1E1E),
+      color: Theme.of(context).colorScheme.surface,
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: EdgeInsets.all(16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold)),
             Flexible(child: Text(value)),
           ],
         ),
